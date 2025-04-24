@@ -1,6 +1,7 @@
 import Breadcrumb from "@/components/Breadcrumb";
 import CategoryEditLayer from "@/components/CategoryEditLayer";
 import MasterLayout from "@/masterLayout/MasterLayout";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Admin Bursopuri",
@@ -16,8 +17,10 @@ const Page = () => {
         {/* Breadcrumb */}
         <Breadcrumb title='Manage Category - Add' />
 
-        {/* InvoiceAddLayer */}
-        <CategoryEditLayer />
+        {/* Suspense Boundary */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <CategoryEditLayer />
+        </Suspense>
       </MasterLayout>
     </>
   );

@@ -1,6 +1,7 @@
-import Breadcrumb from "@/components/Breadcrumb";
-import MenuStockLayer from "@/components/MenuStockLayer";
+import DashBoardLayerTen from "@/components/DashBoardLayerTen";
 import MasterLayout from "@/masterLayout/MasterLayout";
+import { Breadcrumb } from "react-bootstrap";
+import { withAuth } from "@/utils/auth";
 
 export const metadata = {
   title: "Admin Bursopuri",
@@ -14,10 +15,10 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout>
         {/* Breadcrumb */}
-        <Breadcrumb title='Manage Menu - Stock' />
+        <Breadcrumb title='POS & Inventory' />
 
-        {/* InvoicePreviewLayer */}
-        <MenuStockLayer />
+        {/* DashBoardLayerTen */}
+        <DashBoardLayerTen />
       </MasterLayout>
     </>
   );

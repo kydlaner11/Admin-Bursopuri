@@ -1,5 +1,5 @@
 import Breadcrumb from "@/components/Breadcrumb";
-import InvoiceListLayer from "@/components/InvoiceListLayer";
+import MenuListLayer from "@/components/MenuListLayer";
 import MasterLayout from "@/masterLayout/MasterLayout";
 
 export const metadata = {
@@ -17,7 +17,7 @@ const Page = () => {
         <Breadcrumb title='Manage Menu - List' />
 
         {/* InvoiceListLayer */}
-        <InvoiceListLayer />
+        <MenuListLayer />
       </MasterLayout>
     </>
   );

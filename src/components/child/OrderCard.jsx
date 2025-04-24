@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Flex, Tag, Row, Col, Collapse } from "antd";
+import { Button, Flex, Tag, Row, Col, Collapse, Skeleton } from "antd";
 import { ShopOutlined, FormOutlined, SyncOutlined } from "@ant-design/icons";
 
 const OrderCard = () => {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   useEffect(() => {
+    setLoading(true); // Set loading to true before fetching
     axios
       .get("https://jsonplaceholder.typicode.com/posts/1")
       .then(() => {
@@ -19,8 +21,8 @@ const OrderCard = () => {
             totalOrder: "72000",
             nama: "Michael Scott",
             tipeOrder: "Dine in",
-            antrian: "301",
-            status : 3,
+            antrian: "302",
+            status : 0,
             noteOrder: "Tanpa sambal",
             order: [
               {
@@ -49,8 +51,8 @@ const OrderCard = () => {
             totalOrder: "85000",
             nama: "Dwight Schrute",
             tipeOrder: "Take Away",
-            antrian: "300",
-            status : 3,
+            antrian: "303",
+            status : 1,
             noteOrder: "Extra sambal",
             order: [
               {
@@ -79,8 +81,8 @@ const OrderCard = () => {
             totalOrder: "65000",
             nama: "Jim Halpert",
             tipeOrder: "Dine in",
-            antrian: "299",
-            status : 4,
+            antrian: "304",
+            status : 2,
             noteOrder: "No onions",
             order: [
               {
@@ -99,10 +101,19 @@ const OrderCard = () => {
           },
         ]);
       })
-      .catch((error) => console.error("Error fetching data:", error));
+      .catch((error) => console.error("Error fetching data:", error))
+      .finally(() => setLoading(false)); // Set loading to false after fetching
   }, []);
 
-  if (!data) return <p className="text-center text-gray-500">Loading...</p>;
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Skeleton active paragraph={{ rows: 3 }} />
+        <Skeleton active paragraph={{ rows: 3 }} />
+        <Skeleton active paragraph={{ rows: 3 }} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
@@ -159,28 +170,12 @@ const OrderCard = () => {
                   color="green" 
                   icon={<ShopOutlined />} 
                 >
-                  Pesanan Siap
+                  Pesanan selesai
                 </Tag>
                 <Button>
                   Ambil Pesanan
                 </Button>   
               </div>
-              )}
-              {order.status === 3 && (
-                <Tag 
-                  color="default" 
-                  icon={<ShopOutlined />} 
-                >
-                  Pesanan Selesai
-                </Tag>
-              )}
-              {order.status === 4 && (
-                <Tag 
-                  color="red" 
-                  icon={<ShopOutlined />} 
-                >
-                  Pesanan Dibatalkan
-                </Tag>
               )}
             </div>
           </div>

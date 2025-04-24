@@ -17,7 +17,7 @@ const CategoryLayer = () => {
       setLoading(true); // Set loading to true before fetching
       try {
         const response = await Api.get("/categories");
-        setCategories(response.data.categories);
+        setCategories(response.data.menu);
       } catch (error) {
         console.error("Error fetching categories:", error);
         messageApi.error("Gagal memuat kategori.");
@@ -57,14 +57,14 @@ const CategoryLayer = () => {
             type="link"
             icon={<Icon icon="lucide:edit" />}
             className="text-success-main"
-            href={`category-edit?id=${record.id_category}`}
+            href={`category-edit?id=${record.id}`}
           >
             Edit
           </Button>
           <Popconfirm
             title="Hapus Menu"
             description="Apakah Anda yakin ingin menghapus kategori ini?"
-            onConfirm={() => handleDelete(record.id_category)}
+            onConfirm={() => handleDelete(record.id)}
             icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
             okText="Ya"
             cancelText="Batal"

@@ -6,7 +6,7 @@ import { withAuth } from "@/utils/auth";
 export const metadata = {
   title: "Admin Bursopuri",
   description:
-    "Wowdash NEXT JS is a developer-friendly, ready-to-use admin template designed for building attractive, scalable, and high-performing web applications.",
+    "Bursopuri is a admin page for managing orders, products, and users.",
 };
 
 const Page = () => {

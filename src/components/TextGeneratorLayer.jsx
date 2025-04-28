@@ -201,7 +201,7 @@ const TextGeneratorLayer = () => {
               </button>
             </div>
             {/* User generated Text End */}
-            {/* WowDash generated Text Start */}
+            {/* Bursopuri generated Text Start */}
             <div className='d-flex align-items-start gap-16 border-bottom border-neutral-200 pb-16 mb-16'>
               <div className='img overflow-hidden flex-shrink-0'>
                 <img
@@ -211,7 +211,7 @@ const TextGeneratorLayer = () => {
                 />
               </div>
               <div className='info flex-grow-1'>
-                <h6 className='text-lg mb-16 mt-8'>WowDash</h6>
+                <h6 className='text-lg mb-16 mt-8'>Bursopuri</h6>
                 <p className='mb-16 text-secondary-light text-sm'>
                   Creating a UI/UX Design roadmap involves several key stages,
                   from initial research to final testing and iteration. Here’s a
@@ -279,7 +279,7 @@ const TextGeneratorLayer = () => {
                 </div>
               </div>
             </div>
-            {/* WowDash generated Text End */}
+            {/* Bursopuri generated Text End */}
             {/* User generated Text Start */}
             <div className='d-flex align-items-start justify-content-between gap-16 border-bottom border-neutral-200 pb-16 mb-16'>
               <div className='d-flex align-items-center gap-16'>
@@ -305,7 +305,7 @@ const TextGeneratorLayer = () => {
               </button>
             </div>
             {/* User generated Text End */}
-            {/* WowDash generated Text Start */}
+            {/* Bursopuri generated Text Start */}
             <div className='d-flex align-items-start gap-16 border-bottom border-neutral-200 pb-16 mb-16'>
               <div className='img overflow-hidden flex-shrink-0'>
                 <img
@@ -315,7 +315,7 @@ const TextGeneratorLayer = () => {
                 />
               </div>
               <div className='info flex-grow-1'>
-                <h6 className='text-lg mb-16 mt-8'>WowDash</h6>
+                <h6 className='text-lg mb-16 mt-8'>Bursopuri</h6>
                 <p className='mb-16 text-secondary-light text-sm'>
                   Creating a UI/UX Design roadmap involves several key stages,
                   from initial research to final testing and iteration. Here’s a
@@ -383,13 +383,13 @@ const TextGeneratorLayer = () => {
                 </div>
               </div>
             </div>
-            {/* WowDash generated Text End */}
+            {/* Bursopuri generated Text End */}
           </div>
           <form className='chat-message-box'>
             <input
               type='text'
               name='chatMessage'
-              placeholder='Message wowdash...'
+              placeholder='Message Bursopuri...'
             />
             <button
               type='submit'

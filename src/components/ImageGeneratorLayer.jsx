@@ -164,7 +164,7 @@ const ImageGeneratorLayer = () => {
               </button>
             </div>
             {/* User generated Text End */}
-            {/* WowDash generated Text Start */}
+            {/* Bursopuri generated Text Start */}
             <div className='d-flex align-items-start gap-16 border-bottom border-neutral-200 pb-16 mb-16'>
               <div className='img overflow-hidden flex-shrink-0'>
                 <img
@@ -174,7 +174,7 @@ const ImageGeneratorLayer = () => {
                 />
               </div>
               <div className='info flex-grow-1'>
-                <h6 className='text-lg mb-16 mt-8'>WowDash</h6>
+                <h6 className='text-lg mb-16 mt-8'>Bursopuri</h6>
                 <div className='row g-3'>
                   <div className='col-xl-3 col-sm-6'>
                     <div className='generated-image-item radius-8 overflow-hidden position-relative'>
@@ -315,7 +315,7 @@ const ImageGeneratorLayer = () => {
                 </div>
               </div>
             </div>
-            {/* WowDash generated Text End */}
+            {/* Bursopuri generated Text End */}
             {/* User generated Text Start */}
             <div className='d-flex align-items-start justify-content-between gap-16 border-bottom border-neutral-200 pb-16 mb-16'>
               <div className='d-flex align-items-center gap-16'>
@@ -342,7 +342,7 @@ const ImageGeneratorLayer = () => {
               </button>
             </div>
             {/* User generated Text End */}
-            {/* WowDash generated Text Start */}
+            {/* Bursopuri generated Text Start */}
             <div className='d-flex align-items-start gap-16 border-bottom border-neutral-200 pb-16 mb-16'>
               <div className='img overflow-hidden flex-shrink-0'>
                 <img
@@ -352,7 +352,7 @@ const ImageGeneratorLayer = () => {
                 />
               </div>
               <div className='info flex-grow-1'>
-                <h6 className='text-lg mb-16 mt-8'>WowDash</h6>
+                <h6 className='text-lg mb-16 mt-8'>Bursopuri</h6>
                 <div className='row g-3'>
                   <div className='col-sm-6'>
                     <div className='generated-image-item radius-8 overflow-hidden position-relative'>
@@ -407,13 +407,13 @@ const ImageGeneratorLayer = () => {
                 </div>
               </div>
             </div>
-            {/* WowDash generated Text End */}
+            {/* Bursopuri generated Text End */}
           </div>
           <form className='chat-message-box'>
             <input
               type='text'
               name='chatMessage'
-              placeholder='Message wowdash...'
+              placeholder='Message Bursopuri...'
             />
             <button
               type='submit'

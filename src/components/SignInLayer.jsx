@@ -9,8 +9,8 @@ import { Icon } from '@iconify/react/dist/iconify.js';
 const SignInLayer = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // const [error, setError] = useState('');
-  // const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   // const router = useRouter();
   // const {signIn}= useAuth();
 

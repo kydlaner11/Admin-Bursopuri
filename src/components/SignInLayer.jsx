@@ -1,40 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/utils/auth';
+// import { useAuth } from '@/utils/auth';
 import { Icon } from '@iconify/react/dist/iconify.js';
 
 const SignInLayer = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const {signIn}= useAuth();
+  // const [error, setError] = useState('');
+  // const [loading, setLoading] = useState(false);
+  // const router = useRouter();
+  // const {signIn}= useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   setError('');
 
-    try {
-      const { data, error } = await signIn(email, password);
+  //   try {
+  //     const { data, error } = await signIn(email, password);
 
-      if (error) {
-        setError(error.message);
-        return;
-      }
+  //     if (error) {
+  //       setError(error.message);
+  //       return;
+  //     }
 
-      router.push('/');
-    } catch (err) {
-      setError('An error occurred during sign-in');
-      console.error('Sign-in error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     router.push('/');
+  //   } catch (err) {
+  //     setError('An error occurred during sign-in');
+  //     console.error('Sign-in error:', err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <section className="auth bg-base d-flex flex-wrap">
@@ -59,7 +59,7 @@ const SignInLayer = () => {
             <div className="alert alert-danger text-sm mb-3">{error}</div>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form >
             <div className="icon-field mb-16">
               <span className="icon top-50 translate-middle-y">
                 <Icon icon="mage:email" />

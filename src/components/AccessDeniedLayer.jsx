@@ -3,11 +3,11 @@
 import Link from "next/link";
 import React from "react";
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/utils/auth';
+// import { useAuth } from '@/utils/auth';
 
 const AccessDeniedLayer = () => {
   const router = useRouter();
-  const { signOut } = useAuth();
+  // const { signOut } = useAuth();
 
   return (
     <div className='custom-bg'>
@@ -24,7 +24,7 @@ const AccessDeniedLayer = () => {
               Go To Home{" "}
             </button>
             <button 
-              onClick={signOut}
+              // onClick={signOut}
               className='btn btn-primary-600 text-sm'>
               {" "}
               Sign Out{" "}

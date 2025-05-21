@@ -2,11 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { useAuth } from '@/utils/auth';
+// import { useAuth } from '@/utils/auth';
 
 export default function UnauthorizedPage() {
   const router = useRouter();
-  const { signOut } = useAuth();
+  // const { signOut } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 text-center">
@@ -29,7 +29,7 @@ export default function UnauthorizedPage() {
           Go to Home
         </button>
         <button
-          onClick={signOut}
+          // onClick={signOut}
           className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
         >
           Sign Out

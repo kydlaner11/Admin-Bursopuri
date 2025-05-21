@@ -1,5 +1,5 @@
 import Breadcrumb from "@/components/Breadcrumb";
-import MenuStockLayer from "@/components/MenuStockLayer";
+import MenuOptionLayer from "@/components/MenuOptionLayer";
 import MasterLayout from "@/masterLayout/MasterLayout";
 
 export const metadata = {
@@ -14,10 +14,10 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Manage Menu - Stock' />
+        <Breadcrumb title='Manage Menu - Options' />
 
-        {/* InvoicePreviewLayer */}
-        <MenuStockLayer />
+        {/* InvoiceListLayer */}
+        <MenuOptionLayer />
       </MasterLayout>
     </>
   );

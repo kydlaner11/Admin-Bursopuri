@@ -149,6 +149,15 @@ const MasterLayout = ({ children }) => {
             </li>
             <li>
               <Link
+                href='/orders'
+                className={pathname === "/orders" ? "active-page" : ""}
+              >
+                <Icon icon="hugeicons:sending-order" className='menu-icon' />
+                <span>Order</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 href='/order-history'
                 className={pathname === "/order-history" ? "active-page" : ""}
               >
@@ -156,8 +165,9 @@ const MasterLayout = ({ children }) => {
                 <span>Riwayat Order</span>
               </Link>
             </li>
+         
 
-            <li className='sidebar-menu-group-title'>Menu</li>
+            <li className='sidebar-menu-group-title'>Atur</li>
 
 
             {/* Invoice Dropdown */}
@@ -180,13 +190,13 @@ const MasterLayout = ({ children }) => {
                 </li>
                 <li>
                   <Link
-                    href='/menu-stock'
+                    href='/options-list'
                     className={
-                      pathname === "/menu-stock" ? "active-page" : ""
+                      pathname === "/options-list" ? "active-page" : ""
                     }
                   >
                     <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
-                    Stok Menu
+                    Menu Option
                   </Link>
                 </li>
                 <li>
@@ -198,6 +208,17 @@ const MasterLayout = ({ children }) => {
                   >
                     <i className='ri-circle-fill circle-icon text-success-main w-auto' />{" "}
                     Kategori Menu
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/menu-stock'
+                    className={
+                      pathname === "/menu-stock" ? "active-page" : ""
+                    }
+                  >
+                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
+                    Stok Menu
                   </Link>
                 </li>
                 {/* <li>
@@ -223,12 +244,66 @@ const MasterLayout = ({ children }) => {
               </ul>
             </li>
 
+             <li className='dropdown'>
+              <Link href='#'>
+                <Icon icon='hugeicons:image-composition' className='menu-icon' />
+                <span>Atur Gambar</span>
+              </Link>
+              <ul className='sidebar-submenu'>
+                <li>
+                  <Link
+                    href='/banner-list'
+                    className={
+                      pathname === "/banner-list" ? "active-page" : ""
+                    }
+                  >
+                    <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
+                    Banner
+                  </Link>
+                </li>
+                {/* <li>
+                  <Link
+                    href='/menu-options'
+                    className={
+                      pathname === "/menu-options" ? "active-page" : ""
+                    }
+                  >
+                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
+                    Menu Option
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/category-list'
+                    className={
+                      pathname === "/category-list" ? "active-page" : ""
+                    }
+                  >
+                    <i className='ri-circle-fill circle-icon text-success-main w-auto' />{" "}
+                    Kategori Menu
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/menu-stock'
+                    className={
+                      pathname === "/menu-stock" ? "active-page" : ""
+                    }
+                  >
+                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
+                    Stok Menu
+                  </Link>
+                </li> */}
+              </ul>
+            </li>
+            
 
 
-            <li className='sidebar-menu-group-title'>Application</li>
+
+            {/* <li className='sidebar-menu-group-title'>Application</li> */}
 
             {/* Authentication Dropdown */}
-            <li className='dropdown'>
+            {/* <li className='dropdown'>
               <Link href='#'>
                 <Icon icon='simple-line-icons:vector' className='menu-icon' />
                 <span>Authentication</span>
@@ -264,12 +339,12 @@ const MasterLayout = ({ children }) => {
                   </Link>
                 </li>
               </ul>
-            </li>
+            </li> */}
 
             {/* Blog */}
 
             {/* Settings Dropdown */}
-            <li className='dropdown'>
+            {/* <li className='dropdown'>
               <Link href='#'>
                 <Icon
                   icon='icon-park-outline:setting-two'
@@ -348,7 +423,7 @@ const MasterLayout = ({ children }) => {
                   </Link>
                 </li>
               </ul>
-            </li>
+            </li> */}
           </ul>
         </div>
       </aside>

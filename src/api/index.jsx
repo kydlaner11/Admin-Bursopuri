@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const Api = axios.create({
     //set default endpoint API
-    baseURL: "http://localhost:3002/",
+    baseURL: "https://back-bursopuri.vercel.app/",
     headers: {
         'Content-Type': 'application/json', // Pastikan Content-Type sudah benar
     }

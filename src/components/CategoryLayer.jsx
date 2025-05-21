@@ -1,7 +1,7 @@
 "use client";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";
-import { Table, Button, Skeleton, message, Popconfirm } from "antd";
+import { Table, Button, Skeleton, message, Popconfirm, Image } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import Api from "../api";
@@ -44,7 +44,13 @@ const CategoryLayer = () => {
 
   const columns = [
     {
-      title: "Category",
+      title: "Gambar",
+      dataIndex: "image",
+      key: "image",
+      render: (text) => <Image src={text} alt="image" width={50} />,
+    },
+    {
+      title: "Kategori",
       dataIndex: "name",
       key: "name",
     },
@@ -85,9 +91,9 @@ const CategoryLayer = () => {
   return (
     <div className="card">
       {contextHolder}
-      <div className="card-header d-flex justify-content-end">
-        <Link href="category-add" className="btn btn-sm btn-primary-600">
-          <Icon icon="ri-add-line" /> Tambah Kategori
+      <div className='card-header d-flex justify-content-end'>
+        <Link href='menu-add' className='btn btn-sm btn-primary-600'>
+          <i className='ri-add-line' /> Tambah Menu
         </Link>
       </div>
       <div className="card-body">
@@ -98,7 +104,7 @@ const CategoryLayer = () => {
             columns={columns}
             dataSource={categories}
             pagination={{ pageSize: 10 }}
-            rowKey="id_category" // Use a unique key from the API response
+            rowKey="id" // Use a unique key from the API response
           />
         )}
       </div>

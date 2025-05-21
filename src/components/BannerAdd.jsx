@@ -1,71 +1,27 @@
 "use client";
 import { Icon } from "@iconify/react/dist/iconify.js";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Api from "../api";
 import { message, Spin, Upload, List, Image } from "antd";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { PlusOutlined } from "@ant-design/icons";
 
-const CategoryEditLayer = () => {
+const BannerAdd = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const categoryId = searchParams.get("id");
-  const [messageApi, contextHolder] = message.useMessage();
-  const [imageUrl, setImageUrl] = useState("");
-  
   const [formData, setFormData] = useState({
     name: "",
     image: null,
   });
-  
   const [fileList, setFileList] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const response = await Api.get(`/categories/${categoryId}`);
-        const res = response.data;
-        console.log("fetched category data:", res);
-        
-        setFormData({
-          name: res.category.name || "",
-          image: null, // We'll handle image separately with fileList
-        });
-        
-        // If there's an existing image, add it to the fileList
-        if (res.category.image_url) {
-          // Assuming the image URL is returned directly, adjust if needed
-          const imageUrl = res.category.image_url;
-          setImageUrl(imageUrl);
-          
-          setFileList([
-            {
-              uid: '-1',
-              name: res.category.image || "image.png",
-              status: 'done',
-              url: imageUrl,
-            }
-          ]);
-        }
-      } catch (error) {
-        console.error("Error fetching menu data:", error);
-        message.error("Failed to load category data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (categoryId) {
-      fetchMenu();
-    } else {
-      setLoading(false);
-    }
-  }, [categoryId]);
+  const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleUploadChange = ({ fileList: newFileList }) => {
@@ -79,10 +35,6 @@ const CategoryEditLayer = () => {
         ...prev,
         image: latestFileList[0].originFileObj,
       }));
-    } else if (latestFileList.length > 0 && latestFileList[0].url) {
-      // If it's an existing image with URL but no file object,
-      // keep the image URL but don't update the formData.image
-      // as we don't want to re-upload the existing image
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -99,42 +51,44 @@ const CategoryEditLayer = () => {
   );
 
   const handleCancel = () => {
-    router.push("/category-list");
+    router.push("/banner-list");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.name) {
-      message.error("Mohon lengkapi nama menu");
+    if (!formData.name || !formData.image) {
+      message.error("Mohon lengkapi semua field termasuk gambar.");
       setLoading(false);
       return;
     }
 
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      
-      // Only append image if a new one was selected
-      if (formData.image) {
-        formDataToSend.append("image", formData.image);
-      }
+      const formPayload = new FormData();
+      // formPayload.append("name", formData.name);
+      formPayload.append("image", formData.image);
 
-      await Api.put(`/categories/${categoryId}`, formDataToSend, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await Api.post("bursopuri/carousel", formPayload, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-      
+
       messageApi.open({
         type: "success",
-        content: "Menu berhasil diperbarui",
+        content: "Menu berhasil ditambahkan",
         duration: 2.5,
       });
 
-      router.push("/category-list");
+      router.push("/banner-list");
     } catch (error) {
-      console.error("Error updating menu:", error);
-      message.error("Gagal memperbarui menu");
+      console.error("Gagal menambahkan menu:", error);
+      message.open({
+        type: "error",
+        content: "Gagal menambahkan menu",
+        duration: 2.5,
+      });
     } finally {
       setLoading(false);
     }
@@ -158,7 +112,7 @@ const CategoryEditLayer = () => {
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <div className="shadow-4 border radius-8 p-20">
-                <h6 className="text-md text-primary-light mb-16">Edit Menu</h6>
+                <h6 className="text-md text-primary-light mb-16">Add Promo Picture</h6>
                 <form onSubmit={handleSubmit}>
                   <div className="row">
                     <div className="col-sm-12">
@@ -167,7 +121,7 @@ const CategoryEditLayer = () => {
                           htmlFor="name"
                           className="form-label fw-semibold text-primary-light text-sm mb-8"
                         >
-                          Nama Menu <span className="text-danger-600">*</span>
+                          Nama Promo <span className="text-danger-600">*</span> (tidak akan ditampilkan)
                         </label>
                         <input
                           type="text"
@@ -175,7 +129,7 @@ const CategoryEditLayer = () => {
                           id="name"
                           name="name"
                           placeholder="Enter menu name"
-                          value={formData.name || ""}
+                          value={formData.name}
                           onChange={handleInputChange}
                         />
                       </div>
@@ -185,7 +139,7 @@ const CategoryEditLayer = () => {
                         <label
                           className="form-label fw-semibold text-primary-light text-sm mb-8"
                         >
-                          Upload Image
+                          Upload Image <span className="text-danger-600">*</span>
                         </label>
                         <div>
                           <Upload
@@ -202,16 +156,11 @@ const CategoryEditLayer = () => {
                               }
                               return isImage || Upload.LIST_IGNORE;
                             }}
-                            onPreview={(file) => {
-                              // Preview logic if needed
-                              if (file.url) {
-                                window.open(file.url);
-                              }
-                            }}
                           >
                             {fileList.length >= 1 ? null : uploadButton}
                           </Upload>
-                        
+                          
+
                         </div>
                       </div>
                     </div>
@@ -242,4 +191,4 @@ const CategoryEditLayer = () => {
   );
 };
 
-export default CategoryEditLayer;
+export default BannerAdd;

@@ -2,8 +2,9 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useState, useEffect } from "react";
 import Api from "../api";
-import { message, Spin } from "antd";
+import { message, Spin, Upload, Switch, Tooltip } from "antd";
 import { useRouter } from "next/navigation";
+import { PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
 
 const MenuAddLayer = () => {
   const router = useRouter();
@@ -13,9 +14,12 @@ const MenuAddLayer = () => {
     harga: "",
     kategori: "",
     image: "",
+    status_stok: false,
+    jumlah_stok: null,
+    tersedia: true,
   });
   const [categories, setCategories] = useState([]); // State for categories
-  const [uploadedFileName, setUploadedFileName] = useState("");
+  const [fileList, setFileList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -23,7 +27,8 @@ const MenuAddLayer = () => {
     const fetchCategories = async () => {
       try {
         const response = await Api.get("/categories");
-        setCategories(response.data.categories);
+        setCategories(response.data.menu);
+        console.log("Categories fetched:", response.data.menu);
       } catch (error) {
         console.error("Error fetching categories:", error);
         message.error("Gagal memuat kategori.");
@@ -33,6 +38,17 @@ const MenuAddLayer = () => {
     fetchCategories();
   }, []);
 
+  // Update tersedia status when status_stok or jumlah_stok changes
+  useEffect(() => {
+    // If status_stok is true and jumlah_stok is 0, set tersedia to false
+    // Otherwise, keep tersedia as true
+    if (formData.status_stok && formData.jumlah_stok === 0) {
+      setFormData(prev => ({ ...prev, tersedia: false }));
+    } else {
+      setFormData(prev => ({ ...prev, tersedia: true }));
+    }
+  }, [formData.status_stok, formData.jumlah_stok]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -41,16 +57,81 @@ const MenuAddLayer = () => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
-      setUploadedFileName(file.name);
+  const handleStockInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Handle numeric input for jumlah_stok
+    if (name === 'jumlah_stok') {
+      const numberValue = value === '' ? null : parseInt(value, 10);
+      setFormData((prev) => ({
+        ...prev,
+        [name]: numberValue,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
+  };
+
+  const handleStockToggle = (checked) => {
+    setFormData((prev) => ({
+      ...prev,
+      status_stok: checked,
+      // Reset jumlah_stok to null when stock tracking is disabled
+      jumlah_stok: checked ? (prev.jumlah_stok || 0) : null,
+    }));
   };
 
   const handleCancel = () => {
     router.push("/menu-list");
+  };
+
+  // Handle image file upload
+  const handleImageChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList);
+    
+    // Update formData with the file when there is a file
+    if (newFileList.length > 0) {
+      // Use originFileObj which contains the actual File object
+      setFormData((prev) => ({ 
+        ...prev, 
+        image: newFileList[0].originFileObj 
+      }));
+    } else {
+      // Clear the image if no files
+      setFormData((prev) => ({ 
+        ...prev, 
+        image: "" 
+      }));
+    }
+  };
+
+  // Upload component configuration
+  const uploadProps = {
+    beforeUpload: (file) => {
+      // Validate file type
+      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+      if (!isJpgOrPng) {
+        message.error('Anda hanya dapat mengunggah file JPG/PNG!');
+        return Upload.LIST_IGNORE;
+      }
+      
+      // Validate file size (less than 2MB)
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        message.error('Gambar harus kurang dari 2MB!');
+        return Upload.LIST_IGNORE;
+      }
+      
+      // Return false to prevent auto upload behavior
+      return false;
+    },
+    fileList,
+    onChange: handleImageChange,
+    listType: "picture-card",
+    maxCount: 1,
   };
 
   const handleSubmit = async (e) => {
@@ -64,12 +145,25 @@ const MenuAddLayer = () => {
     }
 
     try {
+      const selectedCategory = categories.find(cat => String(cat.id) === String(formData.kategori));
+      const kategoriName = selectedCategory ? selectedCategory.name : "";
+
       const formPayload = new FormData();
       formPayload.append("nama", formData.nama);
       formPayload.append("deskripsi", formData.deskripsi);
       formPayload.append("harga", formData.harga);
-      formPayload.append("kategori", formData.kategori);
+      formPayload.append("kategori", kategoriName);
       formPayload.append("image", formData.image);
+      formPayload.append("status_stok", formData.status_stok);
+      
+      // Only include jumlah_stok if status_stok is true
+      if (formData.status_stok) {
+        formPayload.append("jumlah_stok", formData.jumlah_stok);
+      } else {
+        formPayload.append("jumlah_stok", null);
+      }
+      
+      formPayload.append("tersedia", formData.tersedia);
 
       await Api.post("/menus", formPayload, {
         headers: {
@@ -91,6 +185,14 @@ const MenuAddLayer = () => {
       setLoading(false);
     }
   };
+
+  // Upload button
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </div>
+  );
 
   return (
     <div className='card'>
@@ -190,42 +292,93 @@ const MenuAddLayer = () => {
                             Select Category
                           </option>
                           {categories.map((category) => (
-                            <option key={category.id_category} value={category.id_category}>
+                            <option key={category.id} value={category.id}>
                               {category.name}
                             </option>
                           ))}
                         </select>
                       </div>
                     </div>
+                    
+                    {/* Stock Management Section */}
+                    <div className='col-12'>
+                      <hr className='my-3' />
+                      <h6 className='text-sm text-primary-light mb-16'>Pengaturan Stok</h6>
+                    </div>
+                    
+                    <div className='col-sm-6'>
+                      <div className='mb-20'>
+                        <label
+                          className='form-label fw-semibold text-primary-light text-sm mb-8 d-flex align-items-center'
+                        >
+                          <span>Status Stok</span>
+                          <Tooltip title="Aktifkan untuk melacak jumlah stok menu ini">
+                            <InfoCircleOutlined className='ms-2' />
+                          </Tooltip>
+                        </label>
+                        <div className='d-flex align-items-center'>
+                          <Switch 
+                            checked={formData.status_stok} 
+                            onChange={handleStockToggle}
+                          />
+                          <span className='ms-2 text-sm'>
+                            {formData.status_stok ? 'Aktif' : 'Tidak Aktif'}
+                          </span>
+                        </div>
+                        <p className='text-xs text-muted mt-2'>
+                          {formData.status_stok 
+                            ? 'Menu ini akan menggunakan sistem perhitungan stok' 
+                            : 'Menu ini tidak akan menggunakan sistem perhitungan stok'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {formData.status_stok && (
+                      <div className='col-sm-6'>
+                        <div className='mb-20'>
+                          <label
+                            htmlFor='jumlah_stok'
+                            className='form-label fw-semibold text-primary-light text-sm mb-8'
+                          >
+                            Jumlah Stok <span className='text-danger-600'>*</span>
+                          </label>
+                          <input
+                            type='number'
+                            className='form-control radius-8'
+                            id='jumlah_stok'
+                            name='jumlah_stok'
+                            placeholder='Masukkan jumlah stok'
+                            value={formData.jumlah_stok === null ? '' : formData.jumlah_stok}
+                            onChange={handleStockInputChange}
+                            min='0'
+                          />
+                          <div className='d-flex justify-content-between align-items-center mt-2'>
+                            <p className='text-xs text-muted mb-0'>
+                              Status: <span className={formData.tersedia ? 'text-success' : 'text-danger'}>
+                                {formData.tersedia ? 'Tersedia' : 'Habis'}
+                              </span>
+                            </p>
+                            {formData.jumlah_stok === 0 && (
+                              <p className='text-xs text-danger mb-0'>Stok habis</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className='col-sm-12'>
                       <div className='mb-20'>
                         <label
-                          htmlFor='image'
                           className='form-label fw-semibold text-primary-light text-sm mb-8'
                         >
-                          Upload Image
+                          Upload Image <span className='text-danger-600'>*</span>
                         </label>
-                        <div className='avatar-upload'>
-                          <div className='avatar-edit position-relative'>
-                            <input
-                              type='file'
-                              id='image'
-                              accept='.png, .jpg, .jpeg'
-                              hidden
-                              onChange={handleFileChange}
-                            />
-                            <label
-                              htmlFor='image'
-                              className='w-32-px h-32-px d-flex justify-content-center align-items-center bg-primary-50 text-primary-600 border border-primary-600 bg-hover-primary-100 text-lg rounded-circle'
-                            >
-                              <Icon icon='solar:camera-outline' />
-                            </label>
-                          </div>
-                          {uploadedFileName && (
-                            <p className='text-sm text-success-main mt-2'>
-                              File uploaded: {uploadedFileName}
-                            </p>
-                          )}
+                        <div>
+                          <Upload
+                            {...uploadProps}
+                          >
+                            {fileList.length >= 1 ? null : uploadButton}
+                          </Upload>
+                          <p className="text-xs text-muted mt-2">Format: JPG, PNG. Max size: 2MB</p>
                         </div>
                       </div>
                     </div>

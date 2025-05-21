@@ -13,7 +13,7 @@ const Page = () => {
   return (
     <>
       {/* MasterLayout */}
-      <MasterLayout>
+      <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
         <Breadcrumb title='Manage Menu - Edit' />
 

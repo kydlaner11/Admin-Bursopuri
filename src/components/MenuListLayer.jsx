@@ -1,7 +1,7 @@
 "use client";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";
-import { Table, Button, Skeleton, message, Popconfirm } from "antd";
+import { Table, Button, Skeleton, message, Popconfirm, Image } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import Api from "../api";
@@ -49,6 +49,12 @@ const MenuListLayer = () => {
 
   const columns = [
     {
+      title: "Gambar",
+      dataIndex: "image_url",
+      key: "image_url",
+      render: (text) => <Image src={text} alt="image_url" width={50} />,
+    },
+    {
       title: "Nama Menu",
       dataIndex: "nama",
       key: "nama",
@@ -78,11 +84,6 @@ const MenuListLayer = () => {
       key: "action",
       render: (_, record) => (
         <div className='d-flex gap-2'>
-          <Button
-            type='link'
-            icon={<Icon icon='iconamoon:eye-light' />}
-            className='text-primary-600'
-          />
           <Button
             type='link'
             icon={<Icon icon='lucide:edit' />}

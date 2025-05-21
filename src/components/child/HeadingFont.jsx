@@ -1,108 +1,54 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { Button, Flex, Tag, Row, Col, Collapse } from "antd";
-import { ShopOutlined, FormOutlined, SyncOutlined } from "@ant-design/icons";
+import { Button, Flex, Tag, Row, Col, Collapse, Skeleton, Empty } from "antd";
+import { ShopOutlined, FormOutlined, SyncOutlined, CloseCircleOutlined,CheckCircleOutlined } from "@ant-design/icons";
+import Api from "@/api"; 
+import { formatToIDRCurrency } from "@/utils/formatCurrency";
 
 const OrderCard = () => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]); // Initialize as an empty array
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("https://jsonplaceholder.typicode.com/posts/1")
-      .then(() => {
-        setData([
-          {
-            orderId: "25610235901",
-            tanggalOrder: "Mar 18, 2023",
-            totalOrder: "72000",
-            nama: "Michael Scott",
-            tipeOrder: "Dine in",
-            antrian: "301",
-            status : 3,
-            noteOrder: "Tanpa sambal",
-            order: [
-              {
-                namaMenu: "Nasi Goreng Spesial",
-                jumlah: 2,
-                harga: "15000",
-                note: "Tanpa sambal",
-              },
-              {
-                namaMenu: "Ayam Bakar",
-                jumlah: 1,
-                harga: "27000",
-                note: "Tambah sambal",
-              },
-              {
-                namaMenu: "Es Teh Manis",
-                jumlah: 3,
-                harga: "5000",
-                note: null,
-              },
-            ],
-          },
-          {
-            orderId: "25610235902",
-            tanggalOrder: "Mar 19, 2023",
-            totalOrder: "85000",
-            nama: "Dwight Schrute",
-            tipeOrder: "Take Away",
-            antrian: "300",
-            status : 3,
-            noteOrder: "Extra sambal",
-            order: [
-              {
-                namaMenu: "Mie Goreng",
-                jumlah: 2,
-                harga: "20000",
-                note: "Pedas",
-              },
-              {
-                namaMenu: "Ayam Geprek",
-                jumlah: 1,
-                harga: "30000",
-                note: "Level 5",
-              },
-              {
-                namaMenu: "Es Jeruk",
-                jumlah: 2,
-                harga: "7500",
-                note: null,
-              },
-            ],
-          },
-          {
-            orderId: "25610235903",
-            tanggalOrder: "Mar 20, 2023",
-            totalOrder: "65000",
-            nama: "Jim Halpert",
-            tipeOrder: "Dine in",
-            antrian: "299",
-            status : 4,
-            noteOrder: "No onions",
-            order: [
-              {
-                namaMenu: "Burger",
-                jumlah: 2,
-                harga: "25000",
-                note: "No pickles",
-              },
-              {
-                namaMenu: "French Fries",
-                jumlah: 1,
-                harga: "15000",
-                note: null,
-              },
-            ],
-          },
-        ]);
-      })
-      .catch((error) => console.error("Error fetching data:", error));
+    const fetchData = async () => {
+      try {
+        const response = await Api.get('bursopuri/order-history', {
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        const responseData = response.data.data;
+        setData(responseData);
+        console.log('Order successfully placed:', responseData);
+      } catch (error) {
+        console.error('Error fetching order data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  if (!data) return <p className="text-center text-gray-500">Loading...</p>;
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Skeleton active paragraph={{ rows: 3 }} />
+        <Skeleton active paragraph={{ rows: 3 }} />
+        <Skeleton active paragraph={{ rows: 3 }} />
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <Empty 
+        description="Tidak ada data pesanan"
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col">
@@ -124,7 +70,7 @@ const OrderCard = () => {
             <div className="flex flex-col md:flex-row md:gap-8 text-sm">
               <div>
                 <div className="">Total Pesananan</div>
-                <p className="fw-bold text-md">Rp {order.totalOrder}</p>
+                <p className="fw-bold text-md">{formatToIDRCurrency(order.totalOrder)}</p>
               </div>
             </div>
             <div className="flex flex-col md:flex-row md:gap-8 text-sm">
@@ -133,98 +79,85 @@ const OrderCard = () => {
                 <p className="fw-bold text-md">{order.nama}</p>
               </div>
             </div>
+            <div className="flex flex-col md:flex-row md:gap-8 text-sm">
+              <div>
+                <div className="text-gray-500">No. Meja</div>
+                <p className="fw-bold text-md">{order.tableNumber}</p>
+              </div>
+            </div>
 
             {/* Order ID and Action Buttons */}
             <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
               <p className="text-gray-500 text-sm">
                 Order: <span className="fw-bold text-md">{order.orderId}</span>
               </p>
-              {order.status === 0 && (
-              <Flex gap={5}>
-                <Button color="red" variant="solid">Sudah Membayar</Button>
-                <Button type="default" danger>Batalkan Pesanan</Button>
+              {order.status === "DONE" && (
+                <Flex gap={5} style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <Tag 
+                    color="success" 
+                    icon={<CheckCircleOutlined />} 
+                    style={{ display: "flex", alignItems: "center" }} 
+                  >
+                    Pesanan Selesai
+                  </Tag>
               </Flex>
               )}
-              {order.status === 1 && (
-                <Tag 
-                  color="warning" 
-                  icon={<SyncOutlined />} 
-                >
-                  Pesanan diproses
-                </Tag>
-              )}
-              {order.status === 2 && (
-                <div className="">
+              {order.status === "CANCELLED" && (
+                <Flex gap={5} style={{ display: "flex", justifyContent: "flex-end" }}>
                   <Tag 
-                  color="green" 
-                  icon={<ShopOutlined />} 
-                >
-                  Pesanan Siap
-                </Tag>
-                <Button>
-                  Ambil Pesanan
-                </Button>   
+                    color="error" 
+                    icon={<CloseCircleOutlined />} 
+                    style={{ display: "flex", alignItems: "center" }} 
+                  >
+                    Dibatalkan
+                  </Tag>
+              </Flex>
+              )}
+            </div>
+          </div>
+
+          <div className=" flex-row" style={{ display: "flex" }}>
+            {/* Notification */}
+            <div className="card-body py-16 px-24 h-16" style={{ maxWidth:" 250px" }}>
+              <p className="text-sm text-gray-500 mb-2">Antrian</p>
+              <div 
+                className="fw-bold" 
+                style={{ fontSize: "40px", color: "#7C0000" }}
+              >
+                {order.antrian}
               </div>
-              )}
-              {order.status === 3 && (
-                <Tag 
-                  color="default" 
-                  icon={<ShopOutlined />} 
-                >
-                  Pesanan Selesai
-                </Tag>
-              )}
-              {order.status === 4 && (
-                <Tag 
-                  color="red" 
-                  icon={<ShopOutlined />} 
-                >
-                  Pesanan Dibatalkan
-                </Tag>
-              )}
+              <Tag 
+                color="volcano" 
+                icon={<ShopOutlined />} 
+              >
+                {order.tipeOrder}
+              </Tag>
+            </div>
+
+            {/* Card Body */}
+            <div className="card-body py-16 px-24">
+              {/* Order List */}
+              <Collapse
+                items={order.order.map((item, idx) => ({
+                  key: idx,
+                  label: `${item.namaMenu} x ${item.jumlah}`,
+                  extra: formatToIDRCurrency(item.jumlah * parseInt(item.harga)),
+                  children: (
+                    <>
+                      <p className="text-sm fw-bold text-gray-500 mb-2">
+                        <FormOutlined /> {item.note || "..."}
+                      </p>
+                      <div className="flex justify-between text-sm">
+                        <p>{`${item.jumlah} x ${formatToIDRCurrency(parseInt(item.harga))}`}</p>
+                        <p className="font-semibold">{formatToIDRCurrency(item.jumlah * parseInt(item.harga))}</p>
+                      </div>
+                    </>
+                  ),
+                }))}
+              />
             </div>
           </div>
-
-          {/* Notification */}
-          <div className="card-body py-16 px-24 h-16">
-            <p className="text-sm text-gray-500 mb-2">Antrian</p>
-            <div 
-              className="fw-bold" 
-              style={{ fontSize: "40px", color: "#7C0000" }}
-            >
-              {order.antrian}
-            </div>
-            <Tag 
-              color="volcano" 
-              icon={<ShopOutlined />} 
-            >
-              {order.tipeOrder}
-            </Tag>
-          </div>
-
-          {/* Card Body */}
-          <div className="card-body py-16 px-24">
-            {/* Order List */}
-            <Collapse
-              items={order.order.map((item, idx) => ({
-                key: idx,
-                label: `${item.namaMenu} x ${item.jumlah}`,
-                extra: `Rp ${(item.jumlah * parseInt(item.harga)).toLocaleString("id-ID")}`,
-                children: (
-                  <>
-                    <p className="text-sm fw-bold text-gray-500 mb-2">
-                      <FormOutlined /> {item.note || "..."}
-                    </p>
-                    <div className="flex justify-between text-sm">
-                      <p>{`${item.jumlah} x Rp ${parseInt(item.harga).toLocaleString("id-ID")}`}</p>
-                      <p className="font-semibold">{`Rp ${(item.jumlah * parseInt(item.harga)).toLocaleString("id-ID")}`}</p>
-                    </div>
-                  </>
-                ),
-              }))}
-            />
-          </div>
-        </div>
+        </div>  
       ))}
     </div>
   );

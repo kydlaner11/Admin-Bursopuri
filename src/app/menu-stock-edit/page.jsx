@@ -1,6 +1,7 @@
 import Breadcrumb from "@/components/Breadcrumb";
-import MenuStockLayer from "@/components/MenuStockLayer";
+import MenuStockEdit from "@/components/MenuStockEdit";;
 import MasterLayout from "@/masterLayout/MasterLayout";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Admin Bursopuri",
@@ -14,10 +15,12 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Manage Menu - Stock' />
+        <Breadcrumb title='Manage Stock - Edit' />
 
-        {/* InvoicePreviewLayer */}
-        <MenuStockLayer />
+        {/* Suspense Boundary */}
+        <Suspense fallback={<div>Loading...</div>}>
+          <MenuStockEdit />
+        </Suspense>
       </MasterLayout>
     </>
   );

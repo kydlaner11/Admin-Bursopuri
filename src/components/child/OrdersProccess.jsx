@@ -1,19 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Button, Flex, Tag, Row, Col, Collapse, Skeleton, Empty, message, Popconfirm, Modal } from "antd";
-import { ShopOutlined, FormOutlined, SyncOutlined, QuestionCircleOutlined, CheckCircleOutlined} from "@ant-design/icons";
+import { useEffect, useState, useRef } from "react";
+import { Button, Flex, Tag, Row, Col, Collapse, Skeleton,message, Empty } from "antd";
+import { ShopOutlined, FormOutlined, SyncOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import Api from "@/api"; 
 import { formatToIDRCurrency } from "@/utils/formatCurrency";
 
 const OrderCard = () => {
   const [data, setData] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(true);
-  
+  const [countdown, setCountdown] = useState(null);
+  const timerRef = useRef(null);
+
 
   const fetchData = async () => {
     try {
-      const response = await Api.get('bursopuri/order', {
+      const response = await Api.get('bursopuri/order-progress', {
         headers: {
           'Content-Type': 'application/json',
         }
@@ -33,10 +35,31 @@ const OrderCard = () => {
     fetchData();
   }, []);
 
-  const handlePayment = async (orderId) => {
+  // const startCountdown = () => {
+  //   let time = 15 * 60; // 15 minutes in seconds
+  //   setCountdown(time);
+
+  //   timerRef.current = setInterval(() => {
+  //     time -= 1;
+  //     setCountdown(time);
+
+  //     if (time <= 0) {
+  //       clearInterval(timerRef.current);
+  //       setCountdown(0);
+  //     }
+  //   }, 1000);
+  // };
+
+  // const formatTime = (seconds) => {
+  //   const minutes = Math.floor(seconds / 60);
+  //   const remainingSeconds = seconds % 60;
+  //   return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+  // };
+
+  const handleDone = async (orderId) => {
     try {
       const response = await Api.put(`bursopuri/order-status/${orderId}`, {
-        action: 'pending_to_progress',
+        action: 'progress_to_done',
       }, {
         headers: {
           'Content-Type': 'application/json',
@@ -48,24 +71,6 @@ const OrderCard = () => {
     } catch (error) {
       console.error('Error confirming payment:', error);
       message.error('Gagal mengonfirmasi pembayaran');
-    }
-  };
-
-  const handleCancel = async (orderId) => {
-    try {
-      const response = await Api.put(`bursopuri/order-status/${orderId}`, {
-        action: 'pending_to_cancelled',
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      message.success('Pesanan berhasil dibatalkan');
-      console.log('Order cancelled:', orderId, response.data);
-      await fetchData(); 
-    } catch (error) {
-      console.error('Error cancelling order:', error);
-      message.error('Gagal membatalkan pesanan');
     }
   };
 
@@ -81,11 +86,13 @@ const OrderCard = () => {
 
     if (data.length === 0) {
     return (
-      <Empty 
+      <Empty
         description="Tidak ada data pesanan"
       />
     );
   }
+
+  
 
   return (
     <div className="flex flex-col">
@@ -128,31 +135,8 @@ const OrderCard = () => {
               <p className="text-gray-500 text-sm">
                 Order: <span className="fw-bold text-md">{order.orderId}</span>
               </p>
-              {order.status === "PENDING" && (
-              <Flex gap={5}>
-                <Button 
-                  color="red" 
-                  variant="solid"
-                  onClick={() => handlePayment(order.orderId)}
-                >
-                  Sudah Membayar
-                </Button>
-                <Popconfirm
-                  title="Konfirmasi Pembatalan"
-                  description="Apakah Anda yakin ingin membatalkan pesanan ini?"
-                  okText="Ya"
-                  icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-                  cancelText="Tidak"
-                  onConfirm={() => handleCancel(order.orderId)}
-                >
-                  <Button type="default" danger>
-                    Batalkan Pesanan
-                  </Button>
-                </Popconfirm>
-              </Flex>
-              )}
               {order.status === "IN_PROGRESS" && (
-              <Flex gap={5} style={{ display: "flex", justifyContent: "flex-end" }}>
+                <Flex gap={5}>
                   <Tag 
                     color="warning" 
                     icon={<SyncOutlined />} 
@@ -160,7 +144,17 @@ const OrderCard = () => {
                   >
                     Pesanan diproses
                   </Tag>
-              </Flex>
+                  <div className="">
+                    <Button 
+                      color="red" 
+                      variant="solid"
+                      onClick={() => handleDone(order.orderId)}
+                    >
+                      Pesanan Selesai
+                    </Button>
+                  </div>
+                </Flex>
+                
               )}
               {order.status === "DONE" && (
                 <Flex gap={5} style={{ display: "flex", justifyContent: "flex-end" }}>
@@ -178,7 +172,7 @@ const OrderCard = () => {
 
           <div className=" flex-row" style={{ display: "flex" }}>
             {/* Notification */}
-            <div className="card-body py-16 px-24 h-16" style={{ maxWidth: "250px" }}>
+            <div className="card-body py-16 px-24 h-16" style={{ maxWidth:" 250px" }}>
               <p className="text-sm text-gray-500 mb-2">Antrian</p>
               <div 
                 className="fw-bold" 
@@ -186,21 +180,12 @@ const OrderCard = () => {
               >
                 {order.antrian}
               </div>
-              {order.tipeOrder === "Dine in" ? (
-                <Tag 
-                  color="volcano" 
-                  icon={<ShopOutlined />} 
-                >
-                  {order.tipeOrder}
-                </Tag>
-              ) : (
-                <Tag 
-                  color="blue" 
-                  icon={<ShopOutlined />} 
-                >
-                  {order.tipeOrder}
-                </Tag>
-              )}
+              <Tag 
+                color="volcano" 
+                icon={<ShopOutlined />} 
+              >
+                {order.tipeOrder}
+              </Tag>
             </div>
 
             {/* Card Body */}

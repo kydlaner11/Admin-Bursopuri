@@ -1,7 +1,7 @@
 "use client";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";
-import { Table, Switch, Spin, Skeleton, message } from "antd";
+import { Table, Switch, Spin, Skeleton, message, Button } from "antd";
 import { useState, useEffect } from "react";
 import Api from "../api";
 
@@ -33,11 +33,11 @@ const MenuStockLayer = () => {
 
   const handleStockToggle = async (menuId, checked) => {
     try {
-      await Api.put(`/menus/${menuId}/stock`, { status_stok: checked });
+      await Api.put(`/menus/${menuId}/stock`, { tersedia: checked });
       message.success("Status stok berhasil diperbarui.");
       setData((prevData) =>
         prevData.map((menu) =>
-          menu.id_menu === menuId ? { ...menu, status_stok: checked } : menu
+          menu.id_menu === menuId ? { ...menu, tersedia: checked } : menu
         )
       );
     } catch (error) {
@@ -68,13 +68,45 @@ const MenuStockLayer = () => {
       onFilter: (value, record) => record.kategori === value,
     },
     {
+      title: "Stok",
+      key: "keterangan",
+      render: (_, record) => {
+        if (record.status_stok === false && record.jumlah_stok == null) {
+          return <p style={{ fontStyle: "italic"}}>Selalu tersedia</p>;
+        }
+        if (record.status_stok === true && record.jumlah_stok === 0) {
+          return "Habis";
+        }
+        if (record.status_stok === true && record.jumlah_stok > 0) {
+          return record.jumlah_stok + " " + "pcs";
+        }
+        if (record.status_stok === false && record.jumlah_stok != null) {
+          return "Tidak tersedia";
+        }
+        return "-";
+      },
+    },
+    {
       title: "Action",
       key: "action",
       render: (_, record) => (
+        <>
         <Switch
-          checked={record.status_stok}
+          checked={record.tersedia}
           onChange={(checked) => handleStockToggle(record.id_menu, checked)}
-        />
+          />
+        {record.status_stok === true && (
+          <Button
+            type='link'
+            icon={<Icon icon='lucide:edit' />}
+            className='text-success-main'
+            href={`menu-stock-edit?id=${record.id_menu}`} // Pass id_menu as a query parameter
+          >
+            Edit Stok
+          </Button>
+
+        )}
+        </>
       ),
     },
   ];

@@ -1,6 +1,7 @@
 import Breadcrumb from "@/components/Breadcrumb";
 import MenuOptionEdit from "@/components/MenuOptionEdit";
 import MasterLayout from "@/masterLayout/MasterLayout";
+import { Suspense } from "react";
 
 export const metadata = {
   title: "Admin Bursopuri",
@@ -17,7 +18,9 @@ const Page = () => {
         <Breadcrumb title='Manage Menu - Options' />
 
         {/* InvoiceListLayer */}
-        <MenuOptionEdit />
+        <Suspense fallback={<div>Loading...</div>}>
+          <MenuOptionEdit />
+        </Suspense>
       </MasterLayout>
     </>
   );

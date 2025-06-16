@@ -5,6 +5,7 @@ import { Table, Skeleton, message, Button, Popconfirm } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import Api from "../api";
+import { formatToIDRCurrency } from "../utils/formatCurrency"; 
 
 const MenuOptionLayer = () => {
   const [data, setData] = useState([]);
@@ -66,7 +67,7 @@ const MenuOptionLayer = () => {
         <ul className="list-disc pl-4">
           {choices.map((choice, idx) => (
             <li key={idx}>
-              {choice.name} - Rp{choice.price}
+              {choice.name} - {formatToIDRCurrency(choice.price)}
             </li>
           ))}
         </ul>
@@ -92,7 +93,7 @@ const MenuOptionLayer = () => {
               <Button
                 type='link'
                 icon={<Icon icon='lucide:edit' />}
-                className='text-success-main'
+                style={{ color: '#7C0000' }}
                 href={`options-edit?id=${record.id}`} // Pass id_menu as a query parameter
               />
               <Popconfirm
@@ -106,7 +107,7 @@ const MenuOptionLayer = () => {
                 <Button
                   type='link'
                   icon={<Icon icon='mingcute:delete-2-line' />}
-                  className='text-danger-main'
+                  style={{ color: '#7C0000' }}
                 />
               </Popconfirm>
             </div>
@@ -118,8 +119,16 @@ const MenuOptionLayer = () => {
     <div className="card">
       {contextHolder}
       <div className='card-header d-flex justify-content-end'>
-        <Link href='options-add' className='btn btn-sm btn-primary-600'>
-          <i className='ri-add-line' /> Tambah Menu
+        <Link 
+          href='option-add' 
+          className='btn btn-sm'
+          style={{ 
+            backgroundColor: '#7C0000', 
+            borderColor: '#7C0000',
+            color: 'white'
+          }}
+        >
+          <i className='ri-add-line' /> Tambah Pilihan
         </Link>
       </div>
       <div className="card-body">

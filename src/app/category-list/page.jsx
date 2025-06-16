@@ -14,7 +14,7 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Manage Category - List' />
+        <Breadcrumb title='Kategori' />
 
         {/* InvoiceAddLayer */}
         <CategoryLayer />

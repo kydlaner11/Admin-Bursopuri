@@ -12,9 +12,9 @@ const Page = () => {
   return (
     <>
       {/* MasterLayout */}
-      <MasterLayout requiredRoles={['admin']}>
+      <MasterLayout requiredRoles={['admin', 'kepala_dapur']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Orders History' />
+        <Breadcrumb title='Riwayat Pesanan' />
 
         {/* TypographyLayer */}
         <TypographyLayer />

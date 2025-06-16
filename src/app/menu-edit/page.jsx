@@ -15,7 +15,7 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Manage Menu - Edit' />
+        <Breadcrumb title='Atur Menu - Edit' />
 
         {/* InvoiceEditLayer */}
         <Suspense fallback={<div>Loading...</div>}>

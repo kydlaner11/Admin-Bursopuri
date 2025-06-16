@@ -62,7 +62,7 @@ const CategoryLayer = () => {
           <Button
             type="link"
             icon={<Icon icon="lucide:edit" />}
-            className="text-success-main"
+            style={{ color: '#7C0000' }}
             href={`category-edit?id=${record.id}`}
           >
             Edit
@@ -78,7 +78,7 @@ const CategoryLayer = () => {
             <Button
               type='link'
               icon={<Icon icon="lucide:delete" />}
-              className='text-danger-main'
+              style={{ color: '#7C0000' }}
             >
               Delete
             </Button>
@@ -92,7 +92,15 @@ const CategoryLayer = () => {
     <div className="card">
       {contextHolder}
       <div className='card-header d-flex justify-content-end'>
-        <Link href='menu-add' className='btn btn-sm btn-primary-600'>
+        <Link 
+          href='category-add' 
+          className='btn btn-sm'
+          style={{ 
+            backgroundColor: '#7C0000', 
+            borderColor: '#7C0000',
+            color: 'white'
+          }}
+        >
           <i className='ri-add-line' /> Tambah Menu
         </Link>
       </div>

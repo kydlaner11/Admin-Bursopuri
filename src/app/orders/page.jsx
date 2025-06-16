@@ -14,7 +14,7 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['kepala_dapur']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Orders Proccess' />
+        <Breadcrumb title='Proses Pesanan' />
 
         {/* TypographyLayer */}
         <OrderProccess />

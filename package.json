@@ -41,6 +41,7 @@
     "isotope-layout": "^3.0.6",
     "jquery": "^3.7.1",
     "jsvectormap": "^1.6.0",
+    "jwt-decode": "^4.0.0",
     "katex": "^0.16.11",
     "next": "^15.0.4",
     "postcss": "^8.4.49",

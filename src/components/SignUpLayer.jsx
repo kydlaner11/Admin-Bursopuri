@@ -4,9 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
-import apiService from "@/lib/ApiService";
+import { useAuth } from "@/utils/auth";
 
-export default function SignUpPage() {
+export default function SignUpLayer() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -17,6 +17,7 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { signUp } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,27 +39,38 @@ export default function SignUpPage() {
       return;
     }
 
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setLoading(false);
+      return;
+    }
+
+    console.log("Form data:", formData);
+
     try {
-      const { data, error } = await apiService.signUp(
-        formData.email,
-        formData.password,
-        {
-          full_name: formData.fullName,
-        }
-      );
+      // Sign up with Supabase
+      const { data, error } = await signUp({
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.fullName,
+      });
 
       if (error) throw error;
 
-      if (data.user && data.session) {
-        router.push("/");
-      } else {
-        setSuccess("Registration successful! Please check your email to confirm your account.");
-        setFormData({
-          email: "",
-          password: "",
-          confirmPassword: "",
-          fullName: "",
-        });
+      if (data.user) {
+        if (data.session) {
+          // User is automatically signed in
+          router.push("/");
+        } else {
+          // Email confirmation required
+          setSuccess("Registration successful! Please check your email to confirm your account.");
+          setFormData({
+            email: "",
+            password: "",
+            confirmPassword: "",
+            fullName: "",
+          });
+        }
       }
     } catch (err) {
       setError(err.message || "An error occurred during sign-up");
@@ -135,8 +147,9 @@ export default function SignUpPage() {
                 value={formData.password}
                 onChange={handleChange}
                 required
+                minLength={6}
                 className="form-control h-56-px bg-neutral-50 radius-12"
-                placeholder="Password"
+                placeholder="Password (min 6 characters)"
               />
             </div>
 

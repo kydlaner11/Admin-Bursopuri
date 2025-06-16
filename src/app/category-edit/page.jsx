@@ -15,7 +15,7 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Manage Category - Add' />
+        <Breadcrumb title='Atur Kategori - Edit' />
 
         {/* Suspense Boundary */}
         <Suspense fallback={<div>Loading...</div>}>

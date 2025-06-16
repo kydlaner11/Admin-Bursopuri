@@ -5,6 +5,7 @@ import Api from "../api";
 import { message, Spin, Upload, Switch, Tooltip } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { formatToIDRCurrency } from "../utils/formatCurrency";
 
 const MenuEditLayer = () => {
   const router = useRouter();
@@ -313,13 +314,17 @@ const MenuEditLayer = () => {
                           Harga <span className='text-danger-600'>*</span>
                         </label>
                         <input
-                          type='number'
+                          type='text'
                           className='form-control radius-8'
                           id='harga'
                           name='harga'
-                          value={formData.harga || ""}
-                          onChange={handleInputChange}
-                          placeholder='Enter price'
+                          placeholder='Rp 0'
+                          value={formData.harga !== '' ? formatToIDRCurrency(Number(String(formData.harga).replace(/[^\d]/g, ''))) : ''}
+                          onChange={e => {
+                            // Remove non-digit characters, parse to number, and update formData
+                            const rawValue = e.target.value.replace(/[^\d]/g, '');
+                            setFormData(prev => ({ ...prev, harga: rawValue }));
+                          }}
                         />
                       </div>
                     </div>
@@ -439,8 +444,13 @@ const MenuEditLayer = () => {
                     </button>
                     <button
                       type='submit'
-                      className='btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8'
+                      className='btn border border-600 text-md px-56 py-12 radius-8'
                       disabled={loading}
+                        style={{ 
+                        backgroundColor: '#7C0000', 
+                        borderColor: '#7C0000',
+                        color: 'white'
+                      }}
                     >
                       {loading ? "Saving..." : "Save"}
                     </button>

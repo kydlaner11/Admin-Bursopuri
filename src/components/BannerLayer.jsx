@@ -68,7 +68,7 @@ const BannerLayer = () => {
             <Button
               type="link"
               icon={<Icon icon="lucide:delete" />}
-              className="text-danger-main"
+              style={{ color: '#7C0000' }}
             >
               Hapus
             </Button>
@@ -84,7 +84,7 @@ const BannerLayer = () => {
       <div className="card-header d-flex flex-column align-items-end">
         <Link
           href="banner-add"
-          className={`btn btn-sm btn-primary-600${banners.length >= 3 ? " disabled" : ""}`}
+          className={`btn btn-sm ${banners.length >= 3 ? " disabled" : ""}`}
           tabIndex={banners.length >= 3 ? -1 : 0}
           aria-disabled={banners.length >= 3}
           onClick={e => {
@@ -93,8 +93,13 @@ const BannerLayer = () => {
               messageApi.info("Maksimal 3 banner.");
             }
           }}
+          style={{ 
+            backgroundColor: '#7C0000', 
+            borderColor: '#7C0000',
+            color: 'white'
+          }}
         >
-          <i className='ri-add-line' /> Tambah Menu
+          <i className='ri-add-line' /> Tambah Banner
         </Link>
         {banners.length >= 3 && (
           <div className="text mt-2" style={{ fontSize: 13 }}>

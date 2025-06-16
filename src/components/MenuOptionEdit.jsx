@@ -3,7 +3,8 @@ import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
 import Api from "../api";
 import { message, Spin, Input, Button, Select } from "antd";
-import { useRouter, useSearchParams } from "next/navigation"; // gunakan useSearchParams
+import { useRouter, useSearchParams } from "next/navigation"; 
+import { formatToIDRCurrency } from "../utils/formatCurrency";
 
 const MenuOptionEdit = () => {
   const router = useRouter();
@@ -228,14 +229,15 @@ const MenuOptionEdit = () => {
                             handleChoiceChange(index, "name", e.target.value)
                           }
                         />
-                        <Input
+                       <Input
                           size="large"
-                          type="number"
+                          type="text"
                           placeholder="Harga"
-                          value={choice.price}
-                          onChange={(e) =>
-                            handleChoiceChange(index, "price", e.target.value)
-                          }
+                          value={choice.price !== '' ? formatToIDRCurrency(Number(String(choice.price).replace(/[^\d]/g, ''))) : ''}
+                          onChange={e => {
+                            const rawValue = e.target.value.replace(/[^\d]/g, '');
+                            handleChoiceChange(index, "price", rawValue);
+                          }}
                         />
                         {formData.choices.length > 1 && (
                           <Button danger onClick={() => removeChoice(index)}>
@@ -259,8 +261,13 @@ const MenuOptionEdit = () => {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8"
+                      className="btn border border-600 text-md px-56 py-12 radius-8"
                       disabled={loading}
+                        style={{ 
+                        backgroundColor: '#7C0000', 
+                        borderColor: '#7C0000',
+                        color: 'white'
+                      }}
                     >
                       {loading ? "Saving..." : "Save"}
                     </button>

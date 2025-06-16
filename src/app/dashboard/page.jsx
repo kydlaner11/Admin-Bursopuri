@@ -15,7 +15,7 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='POS & Inventory' />
+        <Breadcrumb title='Dashboard' />
 
         {/* DashBoardLayerTen */}
         <DashBoardLayerTen />

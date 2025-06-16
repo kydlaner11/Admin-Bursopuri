@@ -5,6 +5,7 @@ import { Table, Button, Skeleton, message, Popconfirm, Image } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import Api from "../api";
+import { formatToIDRCurrency } from "../utils/formatCurrency"; // Import the currency formatter
 
 const MenuListLayer = () => {
   const [data, setData] = useState([]);
@@ -68,6 +69,7 @@ const MenuListLayer = () => {
       title: "Harga",
       dataIndex: "harga",
       key: "harga",
+      render: (text) => formatToIDRCurrency(text), // Format the price
     },
     {
       title: "Kategori",
@@ -87,21 +89,21 @@ const MenuListLayer = () => {
           <Button
             type='link'
             icon={<Icon icon='lucide:edit' />}
-            className='text-success-main'
+            style={{ color: '#7C0000' }}
             href={`menu-edit?id=${record.id_menu}`} // Pass id_menu as a query parameter
           />
           <Popconfirm
             title="Hapus Menu"
             description="Apakah Anda yakin ingin menghapus menu ini?"
             onConfirm={() => handleDelete(record.id_menu)}
-            icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+            icon={<QuestionCircleOutlined style={{ color: '#7C0000' }} />}
             okText="Ya"
             cancelText="Batal"
           >
             <Button
               type='link'
               icon={<Icon icon='mingcute:delete-2-line' />}
-              className='text-danger-main'
+              style={{ color: '#7C0000' }}
             />
           </Popconfirm>
         </div>
@@ -113,7 +115,15 @@ const MenuListLayer = () => {
     <div className='card'>
       {contextHolder}
       <div className='card-header d-flex justify-content-end'>
-        <Link href='menu-add' className='btn btn-sm btn-primary-600'>
+        <Link 
+          href='menu-add' 
+          className='btn btn-sm'
+          style={{ 
+            backgroundColor: '#7C0000', 
+            borderColor: '#7C0000',
+            color: 'white'
+          }}
+        >
           <i className='ri-add-line' /> Tambah Menu
         </Link>
       </div>

@@ -3,12 +3,37 @@ import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/utils/auth";
+import ProtectedRoute from "@/lib/ProtectedPage";
 
-const MasterLayout = ({ children }) => {
+const MasterLayout = ({ children, requiredRoles = [] }) => {
   let pathname = usePathname();
   let [sidebarActive, setSidebarActive] = useState(false);
   let [mobileMenu, setMobileMenu] = useState(false);
-  const location = usePathname(); // Hook to get the current route
+  const location = usePathname();
+  const { user, role, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        // Still try to redirect even if there's an error
+      }
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Role-based menu visibility functions
+  const isMenuVisible = (allowedRoles) => {
+    if (!allowedRoles || allowedRoles.length === 0) return true; // Show if no role restriction
+    return allowedRoles.includes(role);
+  };
+
+  const isAdminOnly = () => role === 'admin';
+  const isKepalaDapurOnly = () => role === 'kepala_dapur';
+  // const isAdminOrKepalaDapur = () => ['admin', 'kepala_dapur'].includes(role);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -28,7 +53,7 @@ const MasterLayout = ({ children }) => {
         dropdown.classList.remove("open");
         const submenu = dropdown.querySelector(".sidebar-submenu");
         if (submenu) {
-          submenu.style.maxHeight = "0px"; // Collapse submenu
+          submenu.style.maxHeight = "0px";
         }
       });
 
@@ -37,49 +62,54 @@ const MasterLayout = ({ children }) => {
         clickedDropdown.classList.add("open");
         const submenu = clickedDropdown.querySelector(".sidebar-submenu");
         if (submenu) {
-          submenu.style.maxHeight = `${submenu.scrollHeight}px`; // Expand submenu
+          submenu.style.maxHeight = `${submenu.scrollHeight}px`;
         }
       }
     };
 
-    // Attach click event listeners to all dropdown triggers
-    const dropdownTriggers = document.querySelectorAll(
-      ".sidebar-menu .dropdown > a, .sidebar-menu .dropdown > Link"
-    );
+    // Add a small delay to ensure DOM is ready after role-based rendering
+    const timeoutId = setTimeout(() => {
+      const dropdownTriggers = document.querySelectorAll(
+        ".sidebar-menu .dropdown > a"
+      );
 
-    dropdownTriggers.forEach((trigger) => {
-      trigger.addEventListener("click", handleDropdownClick);
-    });
-
-    const openActiveDropdown = () => {
-      const allDropdowns = document.querySelectorAll(".sidebar-menu .dropdown");
-      allDropdowns.forEach((dropdown) => {
-        const submenuLinks = dropdown.querySelectorAll(".sidebar-submenu li a");
-        submenuLinks.forEach((link) => {
-          if (
-            link.getAttribute("href") === location ||
-            link.getAttribute("to") === location
-          ) {
-            dropdown.classList.add("open");
-            const submenu = dropdown.querySelector(".sidebar-submenu");
-            if (submenu) {
-              submenu.style.maxHeight = `${submenu.scrollHeight}px`; // Expand submenu
-            }
-          }
-        });
+      dropdownTriggers.forEach((trigger) => {
+        trigger.removeEventListener("click", handleDropdownClick); // Remove existing listener
+        trigger.addEventListener("click", handleDropdownClick);
       });
-    };
 
-    // Open the submenu that contains the active route
-    openActiveDropdown();
+      const openActiveDropdown = () => {
+        const allDropdowns = document.querySelectorAll(".sidebar-menu .dropdown");
+        allDropdowns.forEach((dropdown) => {
+          const submenuLinks = dropdown.querySelectorAll(".sidebar-submenu li a");
+          submenuLinks.forEach((link) => {
+            if (
+              link.getAttribute("href") === location ||
+              link.getAttribute("to") === location
+            ) {
+              dropdown.classList.add("open");
+              const submenu = dropdown.querySelector(".sidebar-submenu");
+              if (submenu) {
+                submenu.style.maxHeight = `${submenu.scrollHeight}px`;
+              }
+            }
+          });
+        });
+      };
 
-    // Cleanup event listeners on unmount
+      openActiveDropdown();
+    }, 100);
+
     return () => {
+      clearTimeout(timeoutId);
+      const dropdownTriggers = document.querySelectorAll(
+        ".sidebar-menu .dropdown > a"
+      );
       dropdownTriggers.forEach((trigger) => {
         trigger.removeEventListener("click", handleDropdownClick);
       });
     };
-  }, [location.pathname]);
+  }, [location, role]); // Add role to dependency array
 
   let sidebarControl = () => {
     setSidebarActive(!sidebarActive);
@@ -89,487 +119,369 @@ const MasterLayout = ({ children }) => {
     setMobileMenu(!mobileMenu);
   };
 
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0]; // Use email username part
+    }
+    return 'User';
+  };
+
+  // Get role display name
+  const getRoleDisplayName = () => {
+    if (!role) return 'Loading...';
+    return role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ');
+  };
+
   return (
-    <section className={mobileMenu ? "overlay active" : "overlay "}>
-      {/* sidebar */}
-      <aside
-        className={
-          sidebarActive
-            ? "sidebar active "
-            : mobileMenu
-            ? "sidebar sidebar-open"
-            : "sidebar"
-        }
-      >
-        <button
-          onClick={mobileMenuControl}
-          type='button'
-          className='sidebar-close-btn'
+    <ProtectedRoute allowedRoles={requiredRoles}>
+      <section className={mobileMenu ? "overlay active" : "overlay "}>
+        {/* sidebar */}
+        <aside
+          className={
+            sidebarActive
+              ? "sidebar active "
+              : mobileMenu
+              ? "sidebar sidebar-open"
+              : "sidebar"
+          }
         >
-          <Icon icon='radix-icons:cross-2' />
-        </button>
-        <div>
-          <Link href='/' className='sidebar-logo'>
-            <img
-              src='assets/images/bursopuri.png'
-              alt='site logo'
-              className='light-logo'
-            />
-            <img
-              src='assets/images/bursopuri.png'
-              alt='site logo'
-              className='dark-logo'
-            />
-            <img
-              src='assets/images/logo-bursopuri.png'
-              alt='site logo'
-              className='logo-icon'
-            />
-          </Link>
-        </div>
-        <div className='sidebar-menu-area'>
-          <ul className='sidebar-menu' id='sidebar-menu'>
-          {/* <li>
-              <Link
-                href='/dashboard'
-                className={pathname === "/dashboard" ? "active-page" : ""}
-              >
-                <Icon icon='solar:home-smile-angle-outline' className='menu-icon' />
-                <span>Dashboard</span>
-              </Link>
-            </li> */}
-            <li>
-              <Link
-                href='/'
-                className={pathname === "/" ? "active-page" : ""}
-              >
-                <Icon icon="hugeicons:border-full" className='menu-icon' />
-                <span>Order</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href='/orders'
-                className={pathname === "/orders" ? "active-page" : ""}
-              >
-                <Icon icon="hugeicons:sending-order" className='menu-icon' />
-                <span>Order</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href='/order-history'
-                className={pathname === "/order-history" ? "active-page" : ""}
-              >
-                <Icon icon="hugeicons:brochure" className='menu-icon' />
-                <span>Riwayat Order</span>
-              </Link>
-            </li>
-         
-
-            <li className='sidebar-menu-group-title'>Atur</li>
-
-
-            {/* Invoice Dropdown */}
-            <li className='dropdown'>
-              <Link href='#'>
-                <Icon icon='hugeicons:invoice-03' className='menu-icon' />
-                <span>Atur Menu</span>
-              </Link>
-              <ul className='sidebar-submenu'>
-                <li>
-                  <Link
-                    href='/menu-list'
-                    className={
-                      pathname === "/menu-list" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
-                    Menu
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/options-list'
-                    className={
-                      pathname === "/options-list" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
-                    Menu Option
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/category-list'
-                    className={
-                      pathname === "/category-list" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-success-main w-auto' />{" "}
-                    Kategori Menu
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/menu-stock'
-                    className={
-                      pathname === "/menu-stock" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
-                    Stok Menu
-                  </Link>
-                </li>
-                {/* <li>
-                  <Link
-                    href='/menu-add'
-                    className={pathname === "/menu-add" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-info-main w-auto' />{" "}
-                    Add New Menu
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/menu-edit'
-                    className={
-                      pathname === "/menu-edit" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-danger-main w-auto' />{" "}
-                    Edit Menu
-                  </Link>
-                </li> */}
-              </ul>
-            </li>
-
-             <li className='dropdown'>
-              <Link href='#'>
-                <Icon icon='hugeicons:image-composition' className='menu-icon' />
-                <span>Atur Gambar</span>
-              </Link>
-              <ul className='sidebar-submenu'>
-                <li>
-                  <Link
-                    href='/banner-list'
-                    className={
-                      pathname === "/banner-list" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
-                    Banner
-                  </Link>
-                </li>
-                {/* <li>
-                  <Link
-                    href='/menu-options'
-                    className={
-                      pathname === "/menu-options" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
-                    Menu Option
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/category-list'
-                    className={
-                      pathname === "/category-list" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-success-main w-auto' />{" "}
-                    Kategori Menu
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/menu-stock'
-                    className={
-                      pathname === "/menu-stock" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
-                    Stok Menu
-                  </Link>
-                </li> */}
-              </ul>
-            </li>
-            
-
-
-
-            {/* <li className='sidebar-menu-group-title'>Application</li> */}
-
-            {/* Authentication Dropdown */}
-            {/* <li className='dropdown'>
-              <Link href='#'>
-                <Icon icon='simple-line-icons:vector' className='menu-icon' />
-                <span>Authentication</span>
-              </Link>
-              <ul className='sidebar-submenu'>
-                <li>
-                  <Link
-                    href='/sign-in'
-                    className={pathname === "/sign-in" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
-                    Sign In
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/sign-up'
-                    className={pathname === "/sign-up" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />{" "}
-                    Sign Up
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/forgot-password'
-                    className={
-                      pathname === "/forgot-password" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-info-main w-auto' />{" "}
-                    Forgot Password
-                  </Link>
-                </li>
-              </ul>
-            </li> */}
-
-            {/* Blog */}
-
-            {/* Settings Dropdown */}
-            {/* <li className='dropdown'>
-              <Link href='#'>
-                <Icon
-                  icon='icon-park-outline:setting-two'
-                  className='menu-icon'
-                />
-                <span>Settings</span>
-              </Link>
-              <ul className='sidebar-submenu'>
-                <li>
-                  <Link
-                    href='/company'
-                    className={pathname === "/company" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
-                    Company
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/notification'
-                    className={
-                      pathname === "/notification" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-warning-main w-auto' />{" "}
-                    Notification
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/notification-alert'
-                    className={
-                      pathname === "/notification-alert" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-info-main w-auto' />{" "}
-                    Notification Alert
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/theme'
-                    className={pathname === "/theme" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-danger-main w-auto' />{" "}
-                    Theme
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/currencies'
-                    className={pathname === "/currencies" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-danger-main w-auto' />{" "}
-                    Currencies
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/language'
-                    className={pathname === "/language" ? "active-page" : ""}
-                  >
-                    <i className='ri-circle-fill circle-icon text-danger-main w-auto' />{" "}
-                    Languages
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href='/payment-gateway'
-                    className={
-                      pathname === "/payment-gateway" ? "active-page" : ""
-                    }
-                  >
-                    <i className='ri-circle-fill circle-icon text-danger-main w-auto' />{" "}
-                    Payment Gateway
-                  </Link>
-                </li>
-              </ul>
-            </li> */}
-          </ul>
-        </div>
-      </aside>
-
-      <main
-        className={sidebarActive ? "dashboard-main active" : "dashboard-main"}
-      >
-        <div className='navbar-header'>
-          <div className='row align-items-center justify-content-between'>
-            <div className='col-auto'>
-              <div className='d-flex flex-wrap align-items-center gap-4'>
-                <button
-                  type='button'
-                  className='sidebar-toggle'
-                  onClick={sidebarControl}
+          <button
+            onClick={mobileMenuControl}
+            type='button'
+            className='sidebar-close-btn'
+          >
+            <Icon icon='radix-icons:cross-2' />
+          </button>
+          <div>
+            <Link href='/' className='sidebar-logo'>
+              <img
+                src='assets/images/bursopuri.png'
+                alt='site logo'
+                className='light-logo'
+              />
+              <img
+                src='assets/images/bursopuri.png'
+                alt='site logo'
+                className='dark-logo'
+              />
+              <img
+                src='assets/images/logo-bursopuri.png'
+                alt='site logo'
+                className='logo-icon'
+              />
+            </Link>
+          </div>
+          <div className='sidebar-menu-area'>
+            <ul className='sidebar-menu' id='sidebar-menu'>
+              {/* Dashboard - Visible to all roles */}
+              {isAdminOnly() && (
+              <li>
+                <Link
+                  href='/'
+                  className={pathname === "/" ? "active-page" : ""}
                 >
-                  {sidebarActive ? (
-                    <Icon
-                      icon='iconoir:arrow-right'
-                      className='icon text-2xl non-active'
-                    />
-                  ) : (
-                    <Icon
-                      icon='heroicons:bars-3-solid'
-                      className='icon text-2xl non-active '
-                    />
-                  )}
-                </button>
-                <button
-                  onClick={mobileMenuControl}
-                  type='button'
-                  className='sidebar-mobile-toggle'
-                >
-                  <Icon icon='heroicons:bars-3-solid' className='icon' />
-                </button>
-                {/* <form className='navbar-search'>
-                  <input type='text' name='search' placeholder='Search' />
-                  <Icon icon='ion:search-outline' className='icon' />
-                </form> */}
-              </div>
-            </div>
-            <div className='col-auto'>
-              <div className='d-flex flex-wrap align-items-center gap-3'>
-                {/* <ThemeToggleButton /> */}
-                <div className='dropdown'>
+                  <Icon icon="hugeicons:border-full" className='menu-icon' />
+                  <span>Dashboard</span>
+                </Link>
+              </li>
+              )}
+
+              {isKepalaDapurOnly() && (
+                <li>
+                  <Link
+                    href='/orders'
+                    className={pathname === "/orders" ? "active-page" : ""}
+                  >
+                    <Icon icon="hugeicons:sending-order" className='menu-icon' />
+                    <span>Pesanan</span>
+                  </Link>
+                </li>
+              )}
+
+              {/* Orders - Visible to Admin and Kepala Dapur */}
+              {isMenuVisible(['admin', 'kepala_dapur']) && (
+                 <li>
+                  <Link
+                    href='/order-history'
+                    className={pathname === "/order-history" ? "active-page" : ""}
+                  >
+                    <Icon icon="hugeicons:brochure" className='menu-icon' />
+                    <span>Riwayat Pesanan</span>
+                  </Link>
+                </li>
+              )}
+
+              {isAdminOnly() && (
+                <li className='sidebar-menu-group-title'>Kelola</li>
+              )}
+              {/* Menu Management Dropdown - Different visibility based on role */}
+              {isAdminOnly() && (
+                <li className='dropdown'>
+                  <Link href='#'>
+                    <Icon icon='hugeicons:invoice-03' className='menu-icon' />
+                    <span>Kelola Menu</span>
+                  </Link>
+                  <ul className='sidebar-submenu'>
+                    {/* Menu List - Visible to both Admin and Kepala Dapur */}
+                    <li>
+                      <Link
+                        href='/menu-list'
+                        className={
+                          pathname === "/menu-list" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
+                        Menu
+                      </Link>
+                    </li>
+
+                    {/* Menu Options - Admin only */}
+                    {isAdminOnly() && (
+                      <li>
+                        <Link
+                          href='/options-list'
+                          className={
+                            pathname === "/options-list" ? "active-page" : ""
+                          }
+                        >
+                          <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
+                          Pilihan Menu
+                        </Link>
+                      </li>
+                    )}
+
+                    {/* Category - Admin only */}
+                    {isAdminOnly() && (
+                      <li>
+                        <Link
+                          href='/category-list'
+                          className={
+                            pathname === "/category-list" ? "active-page" : ""
+                          }
+                        >
+                          <i className='ri-circle-fill circle-icon text-success-main w-auto' />{" "}
+                          Kategori Menu
+                        </Link>
+                      </li>
+                    )}
+
+                    {/* Menu Stock - Visible to both Admin and Kepala Dapur */}
+                    <li>
+                      <Link
+                        href='/menu-stock'
+                        className={
+                          pathname === "/menu-stock" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
+                        Stok Menu
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              )}
+
+              {/* Media Management Dropdown - Admin only */}
+              {isAdminOnly() && (
+                <li className='dropdown'>
+                  <Link href='#'>
+                    <Icon icon='hugeicons:image-composition' className='menu-icon' />
+                    <span>Kelola Media</span>
+                  </Link>
+                  <ul className='sidebar-submenu'>
+                    <li>
+                      <Link
+                        href='/banner-list'
+                        className={
+                          pathname === "/banner-list" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />{" "}
+                        Banner
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              )}
+
+              {/* User Management - Admin only */}
+              {/* {isAdminOnly() && (
+                <li className='dropdown'>
+                  <Link href='#'>
+                    <Icon icon='hugeicons:user-settings-01' className='menu-icon' />
+                    <span>User Management</span>
+                  </Link>
+                  <ul className='sidebar-submenu'>
+                    <li>
+                      <Link
+                        href='/users'
+                        className={
+                          pathname === "/users" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-info-main w-auto' />
+                        All Users
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href='/user-roles'
+                        className={
+                          pathname === "/user-roles" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-danger-main w-auto' />
+                        User Roles
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              )} */}
+
+              {/* Kitchen-specific menu for Kepala Dapur */}
+              {/* {isKepalaDapurOnly() && (
+                <li className='dropdown'>
+                  <Link href='#'>
+                    <Icon icon='hugeicons:chef-hat' className='menu-icon' />
+                    <span>Kitchen Management</span>
+                  </Link>
+                  <ul className='sidebar-submenu'>
+                    <li>
+                      <Link
+                        href='/kitchen-orders'
+                        className={
+                          pathname === "/kitchen-orders" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-primary-600 w-auto' />
+                        Kitchen Orders
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href='/preparation-status'
+                        className={
+                          pathname === "/preparation-status" ? "active-page" : ""
+                        }
+                      >
+                        <i className='ri-circle-fill circle-icon text-warning-main w-auto' />
+                        Preparation Status
+                      </Link>
+                    </li>
+                  </ul>
+                </li>
+              )} */}
+            </ul>
+          </div>
+        </aside>
+
+        <main
+          className={sidebarActive ? "dashboard-main active" : "dashboard-main"}
+        >
+          <div className='navbar-header'>
+            <div className='row align-items-center justify-content-between'>
+              <div className='col-auto'>
+                <div className='d-flex flex-wrap align-items-center gap-4'>
                   <button
-                    className='d-flex justify-content-center align-items-center rounded-circle'
                     type='button'
-                    data-bs-toggle='dropdown'
+                    className='sidebar-toggle'
+                    onClick={sidebarControl}
                   >
-                    <img
-                      src='assets/images/user.png'
-                      alt='image_user'
-                      className='w-40-px h-40-px object-fit-cover rounded-circle'
-                    />
+                    {sidebarActive ? (
+                      <Icon
+                        icon='iconoir:arrow-right'
+                        className='icon text-2xl non-active'
+                      />
+                    ) : (
+                      <Icon
+                        icon='heroicons:bars-3-solid'
+                        className='icon text-2xl non-active '
+                      />
+                    )}
                   </button>
-                  <div className='dropdown-menu to-top dropdown-menu-sm'>
-                    <div className='py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2'>
-                      <div>
-                        <h6 className='text-lg text-primary-light fw-semibold mb-2'>
-                          Shaidul Islam
-                        </h6>
-                        <span className='text-secondary-light fw-medium text-sm'>
-                          Admin
-                        </span>
+                  <button
+                    onClick={mobileMenuControl}
+                    type='button'
+                    className='sidebar-mobile-toggle'
+                  >
+                    <Icon icon='heroicons:bars-3-solid' className='icon' />
+                  </button>
+                </div>
+              </div>
+              <div className='col-auto'>
+                <div className='d-flex flex-wrap align-items-center gap-3'>
+                  <div className='dropdown'>
+                    <button
+                      className='d-flex justify-content-center align-items-center rounded-circle'
+                      type='button'
+                      data-bs-toggle='dropdown'
+                      disabled={loading}
+                    >
+                      <img
+                        src='assets/images/users.png'
+                        alt='User Avatar'
+                        className='w-40-px h-40-px object-fit-cover rounded-circle'
+                      />
+                    </button>
+                    <div className='dropdown-menu to-top dropdown-menu-sm'>
+                      <div className='py-12 px-16 radius-8 mb-16 d-flex align-items-center justify-content-between gap-2' style={{ backgroundColor: '#f8f9fa' }}>
+                        <div>
+                          <h6 className='text-lg text-primary-light fw-semibold mb-2'>
+                            {getUserDisplayName()}
+                          </h6>
+                          <span className='text-secondary-light fw-medium text-sm'>
+                            {getRoleDisplayName()}
+                          </span>
+                        </div>
+                        <button type='button' className='hover-text-danger'>
+                          <Icon
+                            icon='radix-icons:cross-1'
+                            className='icon text-xl'
+                          />
+                        </button>
                       </div>
-                      <button type='button' className='hover-text-danger'>
-                        <Icon
-                          icon='radix-icons:cross-1'
-                          className='icon text-xl'
-                        />
-                      </button>
-                    </div>
-                    <ul className='to-top-list'>
-                      <li>
-                        <Link
-                          className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'
-                          href='/view-profile'
-                        >
-                          <Icon
-                            icon='solar:user-linear'
-                            className='icon text-xl'
-                          />{" "}
-                          My Profile
-                        </Link>
-                      </li>
-                      {/* <li>
-                        <Link
-                          className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'
-                          href='/email'
-                        >
-                          <Icon
-                            icon='tabler:message-check'
-                            className='icon text-xl'
-                          />{" "}
-                          Inbox
-                        </Link>
-                      </li> */}
-                        {/* <li>
-                          <Link
-                            className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-primary d-flex align-items-center gap-3'
-                            href='/company'
+                      <ul className='to-top-list'>
+                        <li>
+                          <button
+                            onClick={handleSignOut}
+                            disabled={loading}
+                            className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3 border-0 bg-transparent w-100 text-start'
                           >
-                            <Icon
-                              icon='icon-park-outline:setting-two'
-                              className='icon text-xl'
-                            />
-                            Setting
-                          </Link>
-                        </li> */}
-                      <li>
-                        <Link
-                          className='dropdown-item text-black px-0 py-8 hover-bg-transparent hover-text-danger d-flex align-items-center gap-3'
-                          href='#'
-                        >
-                          <Icon icon='lucide:power' className='icon text-xl' />{" "}
-                          Log Out
-                        </Link>
-                      </li>
-                    </ul>
+                            <Icon icon='lucide:power' className='icon text-xl' />{" "}
+                            {loading ? 'Signing Out...' : 'Sign Out'}
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
-                {/* Profile dropdown end */}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* dashboard-main-body */}
-        <div className='dashboard-main-body'>{children}</div>
+          {/* dashboard-main-body */}
+          <div className='dashboard-main-body'>{children}</div>
 
-        {/* Footer section */}
-        <footer className='d-footer'>
-          <div className='row align-items-center justify-content-between'>
-            <div className='col-auto'>
-              <p className='mb-0'>© 2025 Bursopuri. All Rights Reserved.</p>
+          {/* Footer section */}
+          <footer className='d-footer'>
+            <div className='row align-items-center justify-content-between'>
+              <div className='col-auto'>
+                <p className='mb-0'>© 2025 Bursopuri. All Rights Reserved.</p>
+              </div>
+              <div className='col-auto'>
+                <p className='mb-0'>
+                  Made by <span className='text-600' style={{ color: '#7C0000' }}>Mickael Renaldy</span>
+                </p>
+              </div>
             </div>
-            <div className='col-auto'>
-              <p className='mb-0'>
-                Made by <span className='text-primary-600'>Mickael Renaldy</span>
-              </p>
-            </div>
-          </div>
-        </footer>
-      </main>
-    </section>
+          </footer>
+        </main>
+      </section>
+    </ProtectedRoute>
   );
 };
 

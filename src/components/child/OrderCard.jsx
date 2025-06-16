@@ -206,20 +206,54 @@ const OrderCard = () => {
             {/* Card Body */}
             <div className="card-body py-16 px-24">
               {/* Order List */}
-              <Collapse
+             <Collapse
                 items={order.order.map((item, idx) => ({
                   key: idx,
                   label: `${item.namaMenu} x ${item.jumlah}`,
                   extra: formatToIDRCurrency(item.jumlah * parseInt(item.harga)),
                   children: (
                     <>
-                      <p className="text-sm fw-bold text-gray-500 mb-2">
-                        <FormOutlined /> {item.note || "..."}
-                      </p>
-                      <div className="flex justify-between text-sm">
+                      {item.options && item.options.length > 0 && (
+                        <div className="mb-2 text-sm">
+                          <ul className="list-disc list-inside">
+                            {item.options.map((opt, i) => (
+                              <li key={i}>
+                                <span className="font-medium" style={{ color: "GrayText" }}>{opt.optionName}</span>: {opt.choiceName}
+                                {parseInt(opt.choicePrice) > 0 && (
+                                  <> (+{formatToIDRCurrency(parseInt(opt.choicePrice))})</>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {item.note && (
+                        <Tag
+                          icon={<FormOutlined />} 
+                          color="#FFF7E6"
+                          className="mt-8"
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            color: '#FF8C00',
+                            background: '#FFF7E6',
+                            border: 'none',
+                            borderRadius: '15px',
+                            padding: '8px 16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '30%',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+                          }}
+                        >
+                          {item.note}
+                        </Tag>
+                      )}
+
+                      {/* <div className="flex justify-between text-sm">
                         <p>{`${item.jumlah} x ${formatToIDRCurrency(parseInt(item.harga))}`}</p>
                         <p className="font-semibold">{formatToIDRCurrency(item.jumlah * parseInt(item.harga))}</p>
-                      </div>
+                      </div> */}
                     </>
                   ),
                 }))}

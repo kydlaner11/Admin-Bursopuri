@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-// import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-// import { useAuth } from '@/utils/auth';
+import { useAuth } from '@/utils/auth';
 import { Icon } from '@iconify/react/dist/iconify.js';
 
 const SignInLayer = () => {
@@ -11,30 +11,52 @@ const SignInLayer = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // const router = useRouter();
-  // const {signIn}= useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+  const { signIn, isLoggedIn, role } = useAuth();
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setError('');
+  // Redirect if already logged in
+  useEffect(() => {
+    if (isLoggedIn && role === 'admin') {
+      router.push('/');
+    } else if (isLoggedIn && role !== 'admin') {
+      router.push('/orders');
+    }
+  }, [isLoggedIn, router]);
 
-  //   try {
-  //     const { data, error } = await signIn(email, password);
+  // Reset error saat user mengubah email atau password
+  useEffect(() => {
+    setError('');
+  }, [email, password]);
 
-  //     if (error) {
-  //       setError(error.message);
-  //       return;
-  //     }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-  //     router.push('/');
-  //   } catch (err) {
-  //     setError('An error occurred during sign-in');
-  //     console.error('Sign-in error:', err);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+    try {
+      const { error } = await signIn(email, password);
+
+      if (error) {
+        // Mapping pesan error agar lebih mudah dipahami user
+        const msg = error.toLowerCase();
+        if (msg.includes('tidak terdaftar') || msg.includes('not found')) {
+          setError('Email tidak ditemukan. Silakan cek kembali atau hubungi admin.');
+        } else if (msg.includes('password salah') || msg.includes('email atau password salah') || msg.includes('wrong password') || msg.includes('invalid password')) {
+          setError('Email atau password yang Anda masukkan salah.');
+        } else {
+          setError('Terjadi kesalahan. Silakan coba lagi.');
+        }
+        return;
+      }
+
+    } catch (err) {
+      setError('Terjadi kesalahan saat sign-in.');
+      console.error('Sign-in error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="auth bg-base d-flex flex-wrap">
@@ -56,10 +78,12 @@ const SignInLayer = () => {
           </p>
 
           {error && (
-            <div className="alert alert-danger text-sm mb-3">{error}</div>
+            <div className="alert alert-danger text-sm mb-3">
+              {error} 
+            </div>
           )}
 
-          <form >
+          <form onSubmit={handleSubmit}>
             <div className="icon-field mb-16">
               <span className="icon top-50 translate-middle-y">
                 <Icon icon="mage:email" />
@@ -71,6 +95,7 @@ const SignInLayer = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
 
@@ -80,36 +105,49 @@ const SignInLayer = () => {
                   <Icon icon="solar:lock-password-outline" />
                 </span>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   className="form-control h-56-px bg-neutral-50 radius-12"
-                  id="your-password"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={loading}
                 />
+                <button
+                  type="button"
+                  className="btn btn-link position-absolute top-50 end-0 translate-middle-y pe-3"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                  <Icon 
+                    icon={showPassword ? "solar:eye-outline" : "solar:eye-closed-outline"} 
+                    className="text-secondary"
+                  />
+                </button>
               </div>
             </div>
 
-            <div className="d-flex justify-content-between gap-2">
+            {/* <div className="d-flex justify-content-between gap-2 mb-20">
               <div className="form-check style-check d-flex align-items-center">
-                {/* <input
+                <input
                   className="form-check-input border border-neutral-300"
                   type="checkbox"
                   id="remember"
+                  disabled={loading}
                 />
                 <label className="form-check-label" htmlFor="remember">
                   Remember me
-                </label> */}
+                </label>
               </div>
-              <Link href="#" className="text-primary-600 fw-medium">
+              <Link href="/forgot-password" className="text-primary-600 fw-medium">
                 Forgot Password?
               </Link>
-            </div>
+            </div> */}
 
             <button
               type="submit"
-              className="btn btn-primary text-sm btn-sm px-12 py-16 w-100 radius-12 mt-32"
+              className="btn btn-sm px-12 py-16 w-100 radius-12"
+              style={{ backgroundColor: '#7C0000', borderColor: '#7C0000', color: 'white' }}
               disabled={loading}
             >
               {loading ? (
@@ -122,35 +160,14 @@ const SignInLayer = () => {
               )}
             </button>
 
-            {/* <div className="mt-32 center-border-horizontal text-center">
-              <span className="bg-base z-1 px-4">Or sign in with</span>
-            </div>
-
-            <div className="mt-32 d-flex align-items-center gap-3">
-              <button
-                type="button"
-                className="fw-semibold text-primary-light py-16 px-24 w-50 border radius-12 text-md d-flex align-items-center justify-content-center gap-12 bg-hover-primary-50"
-              >
-                <Icon icon="ic:baseline-facebook" className="text-primary-600 text-xl" />
-                Facebook
-              </button>
-              <button
-                type="button"
-                className="fw-semibold text-primary-light py-16 px-24 w-50 border radius-12 text-md d-flex align-items-center justify-content-center gap-12 bg-hover-primary-50"
-              >
-                <Icon icon="logos:google-icon" className="text-primary-600 text-xl" />
-                Google
-              </button>
-            </div> */}
-
-            <div className="mt-32 text-center text-sm">
+            {/* <div className="mt-32 text-center text-sm">
               <p className="mb-0">
-                Don’t have an account?{' '}
+                Don't have an account?{' '}
                 <Link href="/sign-up" className="text-primary-600 fw-semibold">
                   Sign Up
                 </Link>
               </p>
-            </div>
+            </div> */}
           </form>
         </div>
       </div>

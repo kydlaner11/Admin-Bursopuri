@@ -174,7 +174,12 @@ const AddUserLayer = () => {
                     </button>
                     <button
                       type='submit'
-                      className='btn btn-primary border border-primary-600 text-md px-56 py-12 radius-8'
+                      className='btn border border-600 text-md px-56 py-12 radius-8'
+                      style={{ 
+                        backgroundColor: '#7C0000', 
+                        borderColor: '#7C0000',
+                        color: 'white'
+                      }}
                     >
                       Save
                     </button>

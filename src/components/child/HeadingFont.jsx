@@ -144,13 +144,64 @@ const OrderCard = () => {
                   extra: formatToIDRCurrency(item.jumlah * parseInt(item.harga)),
                   children: (
                     <>
-                      <p className="text-sm fw-bold text-gray-500 mb-2">
-                        <FormOutlined /> {item.note || "..."}
-                      </p>
-                      <div className="flex justify-between text-sm">
+                      {item.note && (
+                        <Tag
+                          icon={<FormOutlined />} 
+                          color="#FFF7E6"
+                          className="mb-8"
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            color: '#FF8C00',
+                            background: '#FFF7E6',
+                            border: 'none',
+                            borderRadius: '5px',
+                            padding: '8px 16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            width: '30%',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
+                          }}
+                        >
+                          {item.note}
+                        </Tag>
+                      )}
+                      {item.options && item.options.length > 0 && (
+                        <div className="mb-2 text-sm">
+                          <ul className="list-disc list-inside">
+                            {item.options.map((opt, i) => (
+                              <li key={i}>
+                                <span className="font-medium" style={{ color: "GrayText" }}>{opt.optionName}</span>: {opt.choiceName}
+                              </li>
+                            ))}
+                          </ul>
+                          {(() => {
+                            const totalOptionsPrice = item.options.reduce((sum, opt) => {
+                              if (!opt.choicePrice) return sum;
+                              
+                              // Handle case where choicePrice is a comma-separated string
+                              if (typeof opt.choicePrice === 'string' && opt.choicePrice.includes(',')) {
+                                const prices = opt.choicePrice.split(',').map(price => parseInt(price.trim()) || 0);
+                                return sum + prices.reduce((priceSum, price) => priceSum + price, 0);
+                              }
+                              
+                              // Handle single price
+                              return sum + parseInt(opt.choicePrice || 0);
+                            }, 0);
+                            
+                            return totalOptionsPrice > 0 && (
+                              <div className="text-sm font-medium mt-1">
+                                Harga Tambahan: <span style={{ fontWeight: 600 }}>+{formatToIDRCurrency(totalOptionsPrice)}</span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                      {/* <div className="flex justify-between text-sm">
                         <p>{`${item.jumlah} x ${formatToIDRCurrency(parseInt(item.harga))}`}</p>
                         <p className="font-semibold">{formatToIDRCurrency(item.jumlah * parseInt(item.harga))}</p>
-                      </div>
+                      </div> */}
                     </>
                   ),
                 }))}

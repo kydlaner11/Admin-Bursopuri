@@ -29,6 +29,7 @@ const MenuEditLayer = () => {
   const [fileList, setFileList] = useState([]); // For Upload component
   const [categories, setCategories] = useState([]); // State for categories
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({}); // State for validation errors
 
   // Fetch categories
   useEffect(() => {
@@ -188,9 +189,29 @@ const MenuEditLayer = () => {
     router.push("/menu-list");
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.nama) newErrors.nama = "Nama menu wajib diisi.";
+    if (!formData.deskripsi) newErrors.deskripsi = "Deskripsi wajib diisi.";
+    if (!formData.harga) newErrors.harga = "Harga wajib diisi.";
+    else if (!/^\d+$/.test(formData.harga)) newErrors.harga = "Harga harus berupa angka.";
+    if (!formData.kategori) newErrors.kategori = "Kategori wajib diisi.";
+    if (fileList.length === 0 && !imageUrl) newErrors.image = "Gambar wajib diunggah.";
+    if (formData.status_stok && (formData.jumlah_stok === null || formData.jumlah_stok === '')) newErrors.jumlah_stok = "Jumlah stok wajib diisi.";
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      message.error("Mohon lengkapi semua field dengan benar.");
+      setLoading(false);
+      return;
+    }
 
     // Cari nama kategori berdasarkan id yang dipilih
     const selectedCategory = categories.find(cat => String(cat.id) === String(formData.kategori));
@@ -277,13 +298,14 @@ const MenuEditLayer = () => {
                         </label>
                         <input
                           type='text'
-                          className='form-control radius-8'
+                          className={`form-control radius-8${errors.nama ? ' is-invalid' : ''}`}
                           id='nama'
                           name='nama'
                           value={formData.nama || ""}
                           onChange={handleInputChange}
                           placeholder='Enter menu name'
                         />
+                        {errors.nama && <div className='text-danger text-xs mt-1'>{errors.nama}</div>}
                       </div>
                     </div>
                     <div className='col-sm-12'>
@@ -295,7 +317,7 @@ const MenuEditLayer = () => {
                           Deskripsi <span className='text-danger-600'>*</span>
                         </label>
                         <textarea
-                          className='form-control radius-8'
+                          className={`form-control radius-8${errors.deskripsi ? ' is-invalid' : ''}`}
                           id='deskripsi'
                           name='deskripsi'
                           value={formData.deskripsi || ""}
@@ -303,6 +325,7 @@ const MenuEditLayer = () => {
                           placeholder='Enter menu description'
                           rows='3'
                         />
+                        {errors.deskripsi && <div className='text-danger text-xs mt-1'>{errors.deskripsi}</div>}
                       </div>
                     </div>
                     <div className='col-sm-6'>
@@ -315,17 +338,17 @@ const MenuEditLayer = () => {
                         </label>
                         <input
                           type='text'
-                          className='form-control radius-8'
+                          className={`form-control radius-8${errors.harga ? ' is-invalid' : ''}`}
                           id='harga'
                           name='harga'
                           placeholder='Rp 0'
                           value={formData.harga !== '' ? formatToIDRCurrency(Number(String(formData.harga).replace(/[^\d]/g, ''))) : ''}
                           onChange={e => {
-                            // Remove non-digit characters, parse to number, and update formData
                             const rawValue = e.target.value.replace(/[^\d]/g, '');
                             setFormData(prev => ({ ...prev, harga: rawValue }));
                           }}
                         />
+                        {errors.harga && <div className='text-danger text-xs mt-1'>{errors.harga}</div>}
                       </div>
                     </div>
                     <div className='col-sm-6'>
@@ -337,7 +360,7 @@ const MenuEditLayer = () => {
                           Kategori <span className='text-danger-600'>*</span>
                         </label>
                         <select
-                          className='form-control radius-8 form-select'
+                          className={`form-control radius-8 form-select${errors.kategori ? ' is-invalid' : ''}`}
                           id='kategori'
                           name='kategori'
                           value={formData.kategori || ""}
@@ -352,6 +375,7 @@ const MenuEditLayer = () => {
                             </option>
                           ))}
                         </select>
+                        {errors.kategori && <div className='text-danger text-xs mt-1'>{errors.kategori}</div>}
                       </div>
                     </div>
                     <div className='col-12'>
@@ -397,7 +421,7 @@ const MenuEditLayer = () => {
                           </label>
                           <input
                             type='number'
-                            className='form-control radius-8'
+                            className={`form-control radius-8${errors.jumlah_stok ? ' is-invalid' : ''}`}
                             id='jumlah_stok'
                             name='jumlah_stok'
                             placeholder='Masukkan jumlah stok'
@@ -405,6 +429,7 @@ const MenuEditLayer = () => {
                             onChange={handleStockInputChange}
                             min='0'
                           />
+                          {errors.jumlah_stok && <div className='text-danger text-xs mt-1'>{errors.jumlah_stok}</div>}
                           <div className='d-flex justify-content-between align-items-center mt-2'>
                             <p className='text-xs text-muted mb-0'>
                               Status: <span className={formData.tersedia ? 'text-success' : 'text-danger'}>
@@ -429,6 +454,7 @@ const MenuEditLayer = () => {
                           <Upload {...uploadProps}>
                             {fileList.length >= 1 ? null : uploadButton}
                           </Upload>
+                          {errors.image && <div className='text-danger text-xs mt-1'>{errors.image}</div>}
                           <p className="text-xs text-muted mt-2">Format: JPG, PNG. Max size: 2MB</p>
                         </div>
                       </div>

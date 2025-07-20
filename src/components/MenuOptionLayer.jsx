@@ -120,7 +120,7 @@ const MenuOptionLayer = () => {
       {contextHolder}
       <div className='card-header d-flex justify-content-end'>
         <Link 
-          href='option-add' 
+          href='options-add' 
           className='btn btn-sm'
           style={{ 
             backgroundColor: '#7C0000', 

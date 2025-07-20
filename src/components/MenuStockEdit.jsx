@@ -14,6 +14,7 @@ const StockEdit = () => {
   const [menuName, setMenuName] = useState("");
   const [messageApi, contextHolder] = message.useMessage();
   const [action, setAction] = useState("restock"); // "restock" atau "reduce"
+  const [error, setError] = useState(""); // State for validation error
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -38,9 +39,11 @@ const StockEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
 
     if (!jumlah || isNaN(jumlah) || jumlah <= 0) {
-      message.error("Masukkan jumlah stok yang valid");
+      setError("Masukkan jumlah stok yang valid dan lebih dari 0");
+      message.error("Masukkan jumlah stok yang valid dan lebih dari 0");
       setLoading(false);
       return;
     }
@@ -97,13 +100,14 @@ const StockEdit = () => {
                     </label>
                     <input
                       type="number"
-                      className="form-control radius-8"
+                      className={`form-control radius-8${error ? ' is-invalid' : ''}`}
                       value={jumlah}
                       onChange={(e) => setJumlah(e.target.value)}
                       min={1}
                       placeholder="Masukkan jumlah stok"
                       required
                     />
+                    {error && <div className="text-danger text-xs mt-1">{error}</div>}
                   </div>
                   <div className="d-flex justify-content-center gap-3">
                     <button

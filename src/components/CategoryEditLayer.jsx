@@ -20,6 +20,7 @@ const CategoryEditLayer = () => {
   
   const [fileList, setFileList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({}); // State for validation errors
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -102,12 +103,24 @@ const CategoryEditLayer = () => {
     router.push("/category-list");
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.name) newErrors.name = "Nama kategori wajib diisi.";
+    // Tidak wajib upload gambar baru, tapi jika ada file, validasi tipe
+    if (formData.image && !(formData.image.type && formData.image.type.startsWith('image/'))) {
+      newErrors.image = "File harus berupa gambar.";
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.name) {
-      message.error("Mohon lengkapi nama menu");
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      message.error("Mohon lengkapi semua field dengan benar.");
       setLoading(false);
       return;
     }
@@ -171,13 +184,14 @@ const CategoryEditLayer = () => {
                         </label>
                         <input
                           type="text"
-                          className="form-control radius-8"
+                          className={`form-control radius-8${errors.name ? ' is-invalid' : ''}`}
                           id="name"
                           name="name"
                           placeholder="Enter menu name"
                           value={formData.name || ""}
                           onChange={handleInputChange}
                         />
+                        {errors.name && <div className="text-danger text-xs mt-1">{errors.name}</div>}
                       </div>
                     </div>
                     <div className="col-sm-12">
@@ -203,7 +217,6 @@ const CategoryEditLayer = () => {
                               return isImage || Upload.LIST_IGNORE;
                             }}
                             onPreview={(file) => {
-                              // Preview logic if needed
                               if (file.url) {
                                 window.open(file.url);
                               }
@@ -211,7 +224,7 @@ const CategoryEditLayer = () => {
                           >
                             {fileList.length >= 1 ? null : uploadButton}
                           </Upload>
-                        
+                          {errors.image && <div className="text-danger text-xs mt-1">{errors.image}</div>}
                         </div>
                       </div>
                     </div>

@@ -12,6 +12,7 @@ const SignInLayer = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState(''); // State for email format error
   const router = useRouter();
   const { signIn, isLoggedIn, role } = useAuth();
 
@@ -29,10 +30,22 @@ const SignInLayer = () => {
     setError('');
   }, [email, password]);
 
+  const validateEmail = (email) => {
+    // Simple email regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setEmailError('');
+
+    if (!validateEmail(email)) {
+      setEmailError('Format email tidak valid');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await signIn(email, password);
@@ -90,13 +103,14 @@ const SignInLayer = () => {
               </span>
               <input
                 type="email"
-                className="form-control h-56-px bg-neutral-50 radius-12"
+                className={`form-control h-56-px bg-neutral-50 radius-12${emailError ? ' is-invalid' : ''}`}
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
               />
+              {emailError && <div className="text-danger text-xs mt-1">{emailError}</div>}
             </div>
 
             <div className="position-relative mb-20">

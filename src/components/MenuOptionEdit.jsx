@@ -22,6 +22,7 @@ const MenuOptionEdit = () => {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [errors, setErrors] = useState({}); // State for validation errors
 
   useEffect(() => {
     const fetchMenus = async () => {
@@ -104,9 +105,44 @@ const MenuOptionEdit = () => {
     router.push("/menu-option-list");
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.title) newErrors.title = "Judul opsi wajib diisi.";
+    if (!formData.menuIds || !Array.isArray(formData.menuIds) || formData.menuIds.length === 0) newErrors.menuIds = "Menu wajib dipilih minimal satu.";
+    if (!formData.max || isNaN(formData.max) || Number(formData.max) < 1) newErrors.max = "Max pilihan wajib diisi dan minimal 1.";
+    if (!formData.choices || formData.choices.length === 0) newErrors.choices = "Minimal satu pilihan harus diisi.";
+    else {
+      formData.choices.forEach((c, idx) => {
+        if (!c.name) {
+          if (!newErrors.choices) newErrors.choices = [];
+          newErrors.choices[idx] = "Nama pilihan wajib diisi.";
+        } else if (!/^.+$/.test(c.name)) {
+          if (!newErrors.choices) newErrors.choices = [];
+          newErrors.choices[idx] = "Nama pilihan tidak valid.";
+        }
+        if (!c.price && c.price !== 0) {
+          if (!newErrors.choices) newErrors.choices = [];
+          newErrors.choices[idx] = (newErrors.choices[idx] ? newErrors.choices[idx] + ' ' : '') + "Harga wajib diisi.";
+        } else if (!/^\d+$/.test(String(c.price))) {
+          if (!newErrors.choices) newErrors.choices = [];
+          newErrors.choices[idx] = (newErrors.choices[idx] ? newErrors.choices[idx] + ' ' : '') + "Harga harus berupa angka.";
+        }
+      });
+    }
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0 || (validationErrors.choices && validationErrors.choices.some(Boolean))) {
+      message.error("Mohon lengkapi semua field dengan benar.");
+      setLoading(false);
+      return;
+    }
 
     const { title, menuIds, optional, max, choices } = formData;
     // Validasi
@@ -162,11 +198,13 @@ const MenuOptionEdit = () => {
                     <Input
                       size="large"
                       type="text"
-                      name="title" // pastikan name="title"
+                      name="title"
                       value={formData.title}
                       onChange={handleInputChange}
                       placeholder="Contoh: Pilihan Minuman"
+                      className={errors.title ? 'is-invalid' : ''}
                     />
+                    {errors.title && <div className="text-danger text-xs mt-1">{errors.title}</div>}
                   </div>
 
                   <div className="mb-20">
@@ -183,7 +221,9 @@ const MenuOptionEdit = () => {
                         value: menu.id_menu,
                         label: menu.nama,
                       }))}
+                      className={errors.menuIds ? 'is-invalid' : ''}
                     />
+                    {errors.menuIds && <div className="text-danger text-xs mt-1">{errors.menuIds}</div>}
                   </div>
 
                   <div className="mb-20">
@@ -210,11 +250,13 @@ const MenuOptionEdit = () => {
                     <Input
                       size="large"
                       type="number"
-                      name="max" // pastikan name="max"
+                      name="max"
                       min={1}
                       value={formData.max}
                       onChange={handleInputChange}
+                      className={errors.max ? 'is-invalid' : ''}
                     />
+                    {errors.max && <div className="text-danger text-xs mt-1">{errors.max}</div>}
                   </div>
 
                   <div className="mb-20">
@@ -228,8 +270,9 @@ const MenuOptionEdit = () => {
                           onChange={(e) =>
                             handleChoiceChange(index, "name", e.target.value)
                           }
+                          className={errors.choices && errors.choices[index] ? 'is-invalid' : ''}
                         />
-                       <Input
+                        <Input
                           size="large"
                           type="text"
                           placeholder="Harga"
@@ -238,6 +281,7 @@ const MenuOptionEdit = () => {
                             const rawValue = e.target.value.replace(/[^\d]/g, '');
                             handleChoiceChange(index, "price", rawValue);
                           }}
+                          className={errors.choices && errors.choices[index] ? 'is-invalid' : ''}
                         />
                         {formData.choices.length > 1 && (
                           <Button danger onClick={() => removeChoice(index)}>
@@ -246,6 +290,10 @@ const MenuOptionEdit = () => {
                         )}
                       </div>
                     ))}
+                    {errors.choices && Array.isArray(errors.choices) && errors.choices.map((err, idx) => err && (
+                      <div key={idx} className="text-danger text-xs mb-1">{err}</div>
+                    ))}
+                    {typeof errors.choices === 'string' && <div className="text-danger text-xs mb-1">{errors.choices}</div>}
                     <Button type="dashed" onClick={addChoice} className="mt-2">
                       + Tambah Pilihan
                     </Button>

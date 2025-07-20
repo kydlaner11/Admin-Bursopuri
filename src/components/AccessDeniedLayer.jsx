@@ -16,6 +16,8 @@ const AccessDeniedLayer = () => {
         console.error('Error signing out:', error);
         // Still try to redirect even if there's an error
       }
+      // Redirect to home page after sign out
+      router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }

@@ -1,17 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Flex, Tag, Row, Col, Collapse, Skeleton, Empty, message, Popconfirm, Modal } from "antd";
-import { ShopOutlined, FormOutlined, SyncOutlined, QuestionCircleOutlined, CheckCircleOutlined} from "@ant-design/icons";
+import { Button, Flex, Tag, Row, Col, Collapse, Skeleton, Empty, message, Popconfirm, Modal, Spin } from "antd";
+import { ShopOutlined, FormOutlined, SyncOutlined, QuestionCircleOutlined, CheckCircleOutlined, ReloadOutlined} from "@ant-design/icons";
 import Api from "@/api"; 
 import { formatToIDRCurrency } from "@/utils/formatCurrency";
 
 const OrderCard = () => {
   const [data, setData] = useState([]); // Initialize as an empty array
   const [loading, setLoading] = useState(true);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [processingOrderId, setProcessingOrderId] = useState(null);
+  const [refreshLoading, setRefreshLoading] = useState(false);
   
 
-  const fetchData = async () => {
+  const fetchData = async (isRefresh = false) => {
+    if (isRefresh) {
+      setRefreshLoading(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const response = await Api.get('bursopuri/order', {
         headers: {
@@ -22,10 +31,15 @@ const OrderCard = () => {
       const responseData = response.data.data;
       setData(responseData);
       console.log('Order successfully placed:', responseData);
+      if (isRefresh) {
+        message.success('Data berhasil diperbarui');
+      }
     } catch (error) {
       console.error('Error fetching order data:', error);
+      message.error('Gagal memuat data pesanan');
     } finally {
       setLoading(false);
+      setRefreshLoading(false);
     }
   };
 
@@ -34,6 +48,8 @@ const OrderCard = () => {
   }, []);
 
   const handlePayment = async (orderId) => {
+    setPaymentLoading(true);
+    setProcessingOrderId(orderId);
     try {
       const response = await Api.put(`bursopuri/order-status/${orderId}`, {
         action: 'pending_to_progress',
@@ -48,10 +64,15 @@ const OrderCard = () => {
     } catch (error) {
       console.error('Error confirming payment:', error);
       message.error('Gagal mengonfirmasi pembayaran');
+    } finally {
+      setPaymentLoading(false);
+      setProcessingOrderId(null);
     }
   };
 
   const handleCancel = async (orderId) => {
+    setCancelLoading(true);
+    setProcessingOrderId(orderId);
     try {
       const response = await Api.put(`bursopuri/order-status/${orderId}`, {
         action: 'pending_to_cancelled',
@@ -66,35 +87,78 @@ const OrderCard = () => {
     } catch (error) {
       console.error('Error cancelling order:', error);
       message.error('Gagal membatalkan pesanan');
+    } finally {
+      setCancelLoading(false);
+      setProcessingOrderId(null);
     }
+  };
+
+  const handleRefresh = () => {
+    fetchData(true);
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4">
-        <Skeleton active paragraph={{ rows: 3 }} />
-        <Skeleton active paragraph={{ rows: 3 }} />
-        <Skeleton active paragraph={{ rows: 3 }} />
+      <div className="flex flex-col gap-16">
+        <div className="card radius-12 border shadow-sm">
+          <div className="card-header py-16 px-24">
+            <Skeleton active paragraph={{ rows: 2 }} />
+          </div>
+          <div className="card-body py-16 px-24">
+            <Skeleton active paragraph={{ rows: 4 }} />
+          </div>
+        </div>
+        <div className="card radius-12 border shadow-sm">
+          <div className="card-header py-16 px-24">
+            <Skeleton active paragraph={{ rows: 2 }} />
+          </div>
+          <div className="card-body py-16 px-24">
+            <Skeleton active paragraph={{ rows: 4 }} />
+          </div>
+        </div>
+        <div className="card radius-12 border shadow-sm">
+          <div className="card-header py-16 px-24">
+            <Skeleton active paragraph={{ rows: 2 }} />
+          </div>
+          <div className="card-body py-16 px-24">
+            <Skeleton active paragraph={{ rows: 4 }} />
+          </div>
+        </div>
       </div>
     );
   }
 
     if (data.length === 0) {
     return (
-      <Empty 
-        description="Tidak ada data pesanan"
-      />
+      <div className="flex flex-col items-center">
+        <Empty 
+          description="Tidak ada data pesanan"
+        />
+        <Button 
+          type="primary" 
+          icon={<ReloadOutlined />}
+          onClick={handleRefresh}
+          loading={refreshLoading}
+          style={{ marginTop: '16px' }}
+        >
+          Muat Ulang
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col">
-      {data.map((order, index) => (
-        <div 
-          key={index} 
-          className="card radius-12 border shadow-sm" 
-          style={{ marginBottom: "20px" }}  
-        >
+    <div className="flex flex-col"> 
+      <Spin spinning={paymentLoading || cancelLoading} size="large">
+        {data.map((order, index) => (
+          <div 
+            key={index} 
+            className="card radius-12 border shadow-sm" 
+            style={{ 
+              marginBottom: "20px",
+              opacity: (paymentLoading || cancelLoading) && processingOrderId === order.orderId ? 0.7 : 1
+            }}  
+          >
           {/* Card Header */}
           <div className="card-header py-16 px-24 bg-base d-flex align-items-center gap-1 justify-content-between border border-end-0 border-start-0 border-top-0">
             {/* Order Info */}
@@ -134,6 +198,8 @@ const OrderCard = () => {
                   color="red" 
                   variant="solid"
                   onClick={() => handlePayment(order.orderId)}
+                  loading={paymentLoading && processingOrderId === order.orderId}
+                  disabled={cancelLoading && processingOrderId === order.orderId}
                 >
                   Sudah Membayar
                 </Button>
@@ -144,8 +210,14 @@ const OrderCard = () => {
                   icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
                   cancelText="Tidak"
                   onConfirm={() => handleCancel(order.orderId)}
+                  disabled={paymentLoading && processingOrderId === order.orderId}
                 >
-                  <Button type="default" danger>
+                  <Button 
+                    type="default" 
+                    danger
+                    loading={cancelLoading && processingOrderId === order.orderId}
+                    disabled={paymentLoading && processingOrderId === order.orderId}
+                  >
                     Batalkan Pesanan
                   </Button>
                 </Popconfirm>
@@ -213,32 +285,18 @@ const OrderCard = () => {
                   extra: formatToIDRCurrency(item.jumlah * parseInt(item.harga)),
                   children: (
                     <>
-                      {item.options && item.options.length > 0 && (
-                        <div className="mb-2 text-sm">
-                          <ul className="list-disc list-inside">
-                            {item.options.map((opt, i) => (
-                              <li key={i}>
-                                <span className="font-medium" style={{ color: "GrayText" }}>{opt.optionName}</span>: {opt.choiceName}
-                                {parseInt(opt.choicePrice) > 0 && (
-                                  <> (+{formatToIDRCurrency(parseInt(opt.choicePrice))})</>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
                       {item.note && (
                         <Tag
                           icon={<FormOutlined />} 
                           color="#FFF7E6"
-                          className="mt-8"
+                          className="mb-8"
                           style={{
                             fontWeight: 600,
                             fontSize: '14px',
                             color: '#FF8C00',
                             background: '#FFF7E6',
                             border: 'none',
-                            borderRadius: '15px',
+                            borderRadius: '5px',
                             padding: '8px 16px',
                             display: 'flex',
                             alignItems: 'center',
@@ -249,6 +307,38 @@ const OrderCard = () => {
                           {item.note}
                         </Tag>
                       )}
+                      {item.options && item.options.length > 0 && (
+                        <div className="mb-2 text-sm">
+                          <ul className="list-disc list-inside">
+                            {item.options.map((opt, i) => (
+                              <li key={i}>
+                                <span className="font-medium" style={{ color: "GrayText" }}>{opt.optionName}</span>: {opt.choiceName}
+                              </li>
+                            ))}
+                          </ul>
+                          {(() => {
+                            const totalOptionsPrice = item.options.reduce((sum, opt) => {
+                              if (!opt.choicePrice) return sum;
+                              
+                              // Handle case where choicePrice is a comma-separated string
+                              if (typeof opt.choicePrice === 'string' && opt.choicePrice.includes(',')) {
+                                const prices = opt.choicePrice.split(',').map(price => parseInt(price.trim()) || 0);
+                                return sum + prices.reduce((priceSum, price) => priceSum + price, 0);
+                              }
+                              
+                              // Handle single price
+                              return sum + parseInt(opt.choicePrice || 0);
+                            }, 0);
+                            
+                            return totalOptionsPrice > 0 && (
+                              <div className="text-sm font-medium mt-1">
+                                Harga Tambahan: <span style={{ fontWeight: 600 }}>+{formatToIDRCurrency(totalOptionsPrice)}</span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+                      
 
                       {/* <div className="flex justify-between text-sm">
                         <p>{`${item.jumlah} x ${formatToIDRCurrency(parseInt(item.harga))}`}</p>
@@ -261,7 +351,8 @@ const OrderCard = () => {
             </div>
           </div>
         </div>  
-      ))}
+        ))}
+      </Spin>
     </div>
   );
 };

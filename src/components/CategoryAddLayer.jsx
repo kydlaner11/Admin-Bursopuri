@@ -15,6 +15,7 @@ const CategoryAddLayer = () => {
   const [fileList, setFileList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
+  const [errors, setErrors] = useState({}); // State for validation errors
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,12 +55,21 @@ const CategoryAddLayer = () => {
     router.push("/category-list");
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.name) newErrors.name = "Nama kategori wajib diisi.";
+    if (!formData.image) newErrors.image = "Gambar wajib diunggah.";
+    return newErrors;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    if (!formData.name || !formData.image) {
-      message.error("Mohon lengkapi semua field termasuk gambar.");
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      message.error("Mohon lengkapi semua field dengan benar.");
       setLoading(false);
       return;
     }
@@ -125,13 +135,14 @@ const CategoryAddLayer = () => {
                         </label>
                         <input
                           type="text"
-                          className="form-control radius-8"
+                          className={`form-control radius-8${errors.name ? ' is-invalid' : ''}`}
                           id="name"
                           name="name"
                           placeholder="Enter menu name"
                           value={formData.name}
                           onChange={handleInputChange}
                         />
+                        {errors.name && <div className="text-danger text-xs mt-1">{errors.name}</div>}
                       </div>
                     </div>
                     <div className="col-sm-12">
@@ -159,6 +170,7 @@ const CategoryAddLayer = () => {
                           >
                             {fileList.length >= 1 ? null : uploadButton}
                           </Upload>
+                          {errors.image && <div className="text-danger text-xs mt-1">{errors.image}</div>}
                           
                           {fileList.length > 0 && (
                             <List

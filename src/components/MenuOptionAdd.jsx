@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/react";
 import { useState, useEffect } from "react";
 import Api from "../api";
-import { message, Spin, Input, Button, Select } from "antd"; // Imported Select from antd
+import { message, Spin, Input, Button, Select, ConfigProvider } from "antd"; // Imported Select from antd
 import { useRouter } from "next/navigation";
 import { formatToIDRCurrency } from "../utils/formatCurrency";
 
@@ -155,7 +155,14 @@ const MenuOptionAdd = () => {
     <div className="card">
       {contextHolder}
       <div className="card-body py-40">
-        <Spin spinning={loading}>
+        <ConfigProvider
+          theme={{
+            token: {
+              colorPrimary: '#7C0000',
+            },
+          }}
+        >
+          <Spin spinning={loading}>
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <div className="shadow-4 border radius-8 p-20">
@@ -293,6 +300,7 @@ const MenuOptionAdd = () => {
             </div>
           </div>
         </Spin>
+        </ConfigProvider>
       </div>
     </div>
   );

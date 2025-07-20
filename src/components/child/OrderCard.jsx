@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button, Flex, Tag, Row, Col, Collapse, Skeleton, Empty, message, Popconfirm, Modal, Spin } from "antd";
+import { Button, Flex, Tag, Row, Col, Collapse, Skeleton, Empty, message, Popconfirm, Modal, Spin, ConfigProvider } from "antd";
 import { ShopOutlined, FormOutlined, SyncOutlined, QuestionCircleOutlined, CheckCircleOutlined, ReloadOutlined} from "@ant-design/icons";
 import Api from "@/api"; 
 import { formatToIDRCurrency } from "@/utils/formatCurrency";
@@ -149,7 +149,14 @@ const OrderCard = () => {
 
   return (
     <div className="flex flex-col"> 
-      <Spin spinning={paymentLoading || cancelLoading} size="large">
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#7C0000',
+          },
+        }}
+      >
+        <Spin spinning={paymentLoading || cancelLoading} size="large">
         {data.map((order, index) => (
           <div 
             key={index} 
@@ -353,6 +360,7 @@ const OrderCard = () => {
         </div>  
         ))}
       </Spin>
+      </ConfigProvider>
     </div>
   );
 };

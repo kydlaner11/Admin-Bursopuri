@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useState } from "react";
 import Api from "../api";
-import { message, Spin, Upload, List, Image } from "antd";
+import { message, Spin, Upload, List, Image, ConfigProvider } from "antd";
 import { useRouter } from "next/navigation";
 import { PlusOutlined } from "@ant-design/icons";
 
@@ -118,7 +118,14 @@ const CategoryAddLayer = () => {
         {/* Header content */}
       </div>
       <div className="card-body py-40">
-        <Spin spinning={loading}>
+        <ConfigProvider
+          theme={{
+            token: {
+              colorPrimary: '#7C0000',
+            },
+          }}
+        >
+          <Spin spinning={loading}>
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <div className="shadow-4 border radius-8 p-20">
@@ -226,6 +233,7 @@ const CategoryAddLayer = () => {
             </div>
           </div>
         </Spin>
+        </ConfigProvider>
       </div>
     </div>
   );

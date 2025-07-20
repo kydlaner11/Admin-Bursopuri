@@ -2,7 +2,7 @@
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { useState, useEffect } from "react";
 import Api from "../api";
-import { message, Spin, Upload, Switch, Tooltip } from "antd";
+import { message, Spin, Upload, Switch, Tooltip, ConfigProvider } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PlusOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { formatToIDRCurrency } from "../utils/formatCurrency";
@@ -281,7 +281,14 @@ const MenuEditLayer = () => {
         </div> */}
       </div>
       <div className='card-body py-40'>
-        <Spin spinning={loading}>
+        <ConfigProvider
+          theme={{
+            token: {
+              colorPrimary: '#7C0000',
+            },
+          }}
+        >
+          <Spin spinning={loading}>
           <div className='row justify-content-center'>
             <div className='col-lg-8'>
               <div className='shadow-4 border radius-8 p-20'>
@@ -486,6 +493,7 @@ const MenuEditLayer = () => {
             </div>
           </div>
         </Spin>
+        </ConfigProvider>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import DashBoardLayerOne from "@/components/DashBoardLayerOne";
+import DashBoardLayer from "@/components/DashBoardLayer";
 import MasterLayout from "@/masterLayout/MasterLayout";
 import Breadcrumb from "@/components/Breadcrumb";
 
@@ -14,10 +14,10 @@ const Page = () => {
       {/* MasterLayout */}
       <MasterLayout requiredRoles={['admin']}>
         {/* Breadcrumb */}
-        <Breadcrumb title='Pesanan' />
+        <Breadcrumb title='Dashboard' />
 
-        {/* DashBoardLayerOne */}
-        <DashBoardLayerOne />
+        {/* DashBoardLayer */}
+        <DashBoardLayer />
       </MasterLayout>
     </>
   );

@@ -1,12 +1,26 @@
+
 import axios from 'axios';
-// import { BASE_URL_BE } from '../constant/url';
 
 const Api = axios.create({
-    //set default endpoint API
-    baseURL: "https://back-bursopuri.vercel.app/",
-    headers: {
-        'Content-Type': 'application/json', // Pastikan Content-Type sudah benar
-    }
-})
+  baseURL: 'https://back-bursopuri.vercel.app/',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
-export default Api
+Api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export default Api;

@@ -18,6 +18,17 @@ export const NAV_ITEMS = [
     roles: ["admin"],
   },
   {
+    id: "finance",
+    label: "Keuangan",
+    href: "/finance",
+    icon: "hugeicons:border-full",
+    roles: ["admin"],
+    children: [
+      { label: "Penjualan Harian", href: "/finance-sales", dot: "text-primary-600" },
+      { label: "Pengeluaran", href: "/finance-expenses", dot: "text-warning-main" },
+    ],
+  },
+  {
     id: "terima-pesanan",
     label: "Terima Pesanan",
     href: "/terima-pesanan",

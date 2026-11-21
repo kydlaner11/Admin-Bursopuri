@@ -1,11 +1,14 @@
 "use client";
 // src/components/DashBoardLayer.jsx
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Modal, Input, message, ConfigProvider } from "antd";
+import { Modal, Input, Button, message, ConfigProvider } from "antd";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import FinanceQuickCard from "@/components/finance/FinanceQuickCard";
 
 const BRAND = "#7C0000";
 const WAIT_TEXT = "mohon ditunggu";
+const READY_TEXT = "pesanan siap, silakan ambil";
+const READY_COLOR = "#16a34a";
 const PIN_LENGTH = 4;
 const PIN_REGEX = new RegExp(`^[A-Z0-9]{${PIN_LENGTH}}$`);
 
@@ -28,15 +31,19 @@ const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 //  Gojek + PIN       -> "Gojek, nomor pin B, A, 7, 2, mohon ditunggu"
 //  Offline           -> "Mohon ditunggu"
 //  Offline + nama    -> "Budi, mohon ditunggu"
-const buildSpeech = (channel, name, pin) => {
+//  Kalimat penutup bisa diganti: WAIT_TEXT ("mohon ditunggu") atau READY_TEXT ("pesanan siap")
+//  Gojek + PIN       -> "Gojek, nomor pin B, A, 7, 2, pesanan siap"
+//  Shopee + nama     -> "Shopee Budi, pesanan siap"
+//  Offline           -> "Pesanan siap"
+const buildSpeech = (channel, name, pin, text = WAIT_TEXT) => {
   if (channel.requirePin) {
     const spelled = pin.split("").join(", "); // dieja satu-satu
-    return `${channel.label}, nomor pin ${spelled}, ${WAIT_TEXT}`;
+    return `${channel.label}, nomor pin ${spelled}, ${text}`;
   }
   const prefix = [channel.announceName ? channel.label : "", name.trim()]
     .filter(Boolean)
     .join(" ");
-  return prefix ? `${prefix}, ${WAIT_TEXT}` : capitalize(WAIT_TEXT);
+  return prefix ? `${prefix}, ${text}` : capitalize(text);
 };
 
 const DashBoardLayer = () => {
@@ -89,16 +96,18 @@ const DashBoardLayer = () => {
   const pinValid = PIN_REGEX.test(pin);
   const canConfirm = !selected?.requirePin || pinValid;
 
-  const handleConfirm = () => {
+  const announce = (text) => {
     if (!selected || !canConfirm) return;
-    speak(buildSpeech(selected, name, pin));
+    speak(buildSpeech(selected, name, pin, text));
     closeModal();
   };
+  const handleConfirm = () => announce(WAIT_TEXT); // juga dipakai tombol Enter
+  const handleReady = () => announce(READY_TEXT);
 
   // Pratinjau kalimat yang akan diucapkan
-  const preview = selected
-    ? buildSpeech(selected, name, selected.requirePin ? (pinValid ? pin : "_ _ _ _") : "")
-    : "";
+  const previewPin = selected?.requirePin ? (pinValid ? pin : "_".repeat(PIN_LENGTH)) : "";
+  const previewWait = selected ? buildSpeech(selected, name, previewPin, WAIT_TEXT) : "";
+  const previewReady = selected ? buildSpeech(selected, name, previewPin, READY_TEXT) : "";
 
   return (
     <ConfigProvider theme={{ token: { colorPrimary: BRAND } }}>
@@ -144,19 +153,40 @@ const DashBoardLayer = () => {
         </div>
       </div>
 
+      {/* Keuangan: tombol cepat + ringkasan (gagal dimuat tidak mengganggu tombol panggilan) */}
+      <div className='mt-16'>
+        <FinanceQuickCard />
+      </div>
+
       <Modal
         open={!!selected}
         title={selected ? `Konfirmasi ${selected.label}` : ""}
         onCancel={closeModal}
-        onOk={handleConfirm}
-        okText='Minta Tunggu'
-        cancelText='Batal'
-        okButtonProps={{ disabled: !canConfirm }}
         centered
         destroyOnClose
+        footer={[
+          <Button key='cancel' onClick={closeModal}>
+            Batal
+          </Button>,
+          <Button
+            key='ready'
+            type='primary'
+            disabled={!canConfirm}
+            onClick={handleReady}
+            style={canConfirm ? { backgroundColor: READY_COLOR, borderColor: READY_COLOR } : undefined}
+          >
+            Pesanan Siap
+          </Button>,
+          <Button key='wait' type='primary' disabled={!canConfirm} onClick={handleConfirm}>
+            Minta Tunggu
+          </Button>,
+        ]}
       >
+        <p className='mb-4'>
+          Minta Tunggu: <b>&quot;{previewWait}&quot;</b>
+        </p>
         <p className='mb-12'>
-          Suara yang diputar: <b>&quot;{preview}&quot;</b>
+          Pesanan Siap: <b>&quot;{previewReady}&quot;</b>
         </p>
 
         {selected?.requirePin ? (
